@@ -8,7 +8,6 @@ import api from '../../services/api';
 export default function HomePage() {
   const { user } = useAuth();
   const [borrows, setBorrows] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api.get('/borrows/my').then(res => setBorrows(res.data.data)).finally(() => setLoading(false));
