@@ -18,7 +18,7 @@ export default function MyBorrowsPage() {
     api.get('/borrows/my', { params }).then(r => setBorrows(r.data.data)).finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchBorrows(); }, [filter]);
+  useEffect(() => {fetchBorrows();}, [fetchBorrows]);
 
   const handleRenew = async (id) => {
     setRenewing(id);
