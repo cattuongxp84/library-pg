@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiFilter, FiBook } from 'react-icons/fi';
+import { FiSearch, FiBook } from 'react-icons/fi';
 import Layout from '../../components/common/Layout';
 import api from '../../services/api';
 
