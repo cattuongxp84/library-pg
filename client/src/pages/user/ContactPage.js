@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../../components/common/Layout';
-import { FiSend, FiInbox } from 'react-icons/fi';
+import { FiSend } from 'react-icons/fi';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
