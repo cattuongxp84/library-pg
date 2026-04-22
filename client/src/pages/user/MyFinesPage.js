@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FiAlertTriangle, FiBook, FiClock } from 'react-icons/fi';
+import { FiAlertTriangle, FiClock } from 'react-icons/fi';
 import Layout from '../../components/common/Layout';
 import api from '../../services/api';
 
