@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { FiSearch, FiEdit2, FiX, FiShield, FiCheck, FiMinus, FiUser, FiLock } from 'react-icons/fi';
+import { FiSearch, FiEdit2, FiX, FiShield, FiCheck, FiMinus, FiUser, FiLock, FiDownload, FiImport } from 'react-icons/fi';
 import Layout from '../../components/common/Layout';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
@@ -61,6 +61,9 @@ export default function AdminUsers() {
   const [modal, setModal]           = useState(false);
   const [editing, setEditing]       = useState(null);
   const [saving, setSaving]         = useState(false);
+  const [importModal, setImportModal]     = useState(false);
+  const [importFile, setImportFile]       = useState(null);
+  const [isImporting, setIsImporting]     = useState(false);
   const [form, setForm] = useState({
     name: '', phone: '', student_id: '', role: 'user', is_active: true, permissions: [],
   });
@@ -130,12 +133,60 @@ export default function AdminUsers() {
     } finally { setSaving(false); }
   };
 
+  // Export/Import
+  const handleExportUsers = async () => {
+    try {
+      const response = await api.get('/users/export', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `users-${new Date().toISOString().split('T')[0]}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      toast.success('Tải xuống danh sách sinh viên thành công!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Lỗi tải xuống file');
+    }
+  };
+
+  const handleImportUsers = async () => {
+    if (!importFile) {
+      toast.error('Vui lòng chọn file Excel');
+      return;
+    }
+    
+    setIsImporting(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', importFile);
+      const response = await api.post('/users/import', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      
+      toast.success(`✅ Import thành công! Đã thêm ${response.data.data?.added || 0} sinh viên, cập nhật ${response.data.data?.updated || 0} sinh viên`);
+      setImportModal(false);
+      setImportFile(null);
+      fetchUsers();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Lỗi import file');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   return (
     <Layout>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 700 }}>Quản lý người dùng</h1>
           <p style={{ color: '#64748b', marginTop: 4 }}>Phân quyền và quản lý tài khoản</p>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-secondary" onClick={handleExportUsers} title="Xuất danh sách sinh viên ra file Excel">
+            <FiDownload /> Xuất Excel
+          </button>
+          <button className="btn btn-secondary" onClick={() => setImportModal(true)} title="Nhập danh sách sinh viên từ file Excel">
+            <FiImport /> Nhập Excel
+          </button>
         </div>
       </div>
 
@@ -365,6 +416,54 @@ export default function AdminUsers() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Import Modal */}
+      {importModal && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setImportModal(false)}>
+          <div className="modal" style={{ maxWidth: 480 }}>
+            <div className="modal-header">
+              <h3><FiImport style={{ marginRight: 8 }} />Nhập danh sách sinh viên</h3>
+              <button className="btn btn-secondary btn-icon" onClick={() => setImportModal(false)}><FiX /></button>
+            </div>
+            <div className="modal-body">
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13 }}>
+                💡 <strong>Hướng dẫn:</strong>
+                <ul style={{ marginLeft: 20, marginTop: 6, marginBottom: 0 }}>
+                  <li>Tải file template bằng cách click "Xuất Excel" trước</li>
+                  <li>Điền thông tin sinh viên vào file Excel</li>
+                  <li>Tải file lên để thêm hoặc cập nhật sinh viên</li>
+                </ul>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Chọn file Excel (*.xlsx)</label>
+                <input type="file" accept=".xlsx,.xls" className="form-control"
+                  onChange={e => setImportFile(e.target.files[0])} />
+                {importFile && (
+                  <div style={{ fontSize: 12, color: '#16a34a', marginTop: 6 }}>
+                    📄 {importFile.name}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ background: '#fef3c7', border: '1px solid #fde047', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#92400e' }}>
+                ⚠️ <strong>Lưu ý:</strong> 
+                <ul style={{ marginLeft: 20, marginTop: 4, marginBottom: 0 }}>
+                  <li>Email là trường bắt buộc và dùng để xác định sinh viên có sẵn</li>
+                  <li>Nếu email đã tồn tại, dữ liệu sẽ được cập nhật, không thêm mới</li>
+                  <li>Mật khẩu mặc định nếu không có: 123456</li>
+                </ul>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => { setImportModal(false); setImportFile(null); }} disabled={isImporting}>Hủy</button>
+              <button className="btn btn-primary" onClick={handleImportUsers} disabled={!importFile || isImporting}>
+                {isImporting ? <>🔄 Đang nhập...</> : <>✅ Nhập dữ liệu</>}
+              </button>
+            </div>
           </div>
         </div>
       )}

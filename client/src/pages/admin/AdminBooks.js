@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEdit2, FiSearch, FiX, FiList, FiRefreshCw, FiTrash2, FiCopy, FiUpload, FiEye, FiEyeOff, FiFileText } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiSearch, FiX, FiList, FiRefreshCw, FiTrash2, FiCopy, FiUpload, FiEye, FiEyeOff, FiFileText, FiDownload, FiImport } from 'react-icons/fi';
 import Layout from '../../components/common/Layout';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
@@ -48,6 +48,11 @@ export default function AdminBooks() {
   const [previewCodes, setPreviewCodes]   = useState([]);
   const [addingCopy, setAddingCopy]       = useState(false);
   const [editCopy, setEditCopy]           = useState(null);  // { id, condition, note, status }
+
+  // Import/Export
+  const [importModal, setImportModal]     = useState(false);
+  const [importFile, setImportFile]       = useState(null);
+  const [isImporting, setIsImporting]     = useState(false);
 
   // ── Sách ──
   const fetchBooks = useCallback(async () => {
@@ -238,6 +243,46 @@ export default function AdminBooks() {
 
   const countByStatus = (status) => copies.filter(c => c.status === status).length;
 
+  // Export/Import
+  const handleExportBooks = async () => {
+    try {
+      const response = await api.get('/books/export', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `books-${new Date().toISOString().split('T')[0]}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      toast.success('Tải xuống file sách thành công!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Lỗi tải xuống file');
+    }
+  };
+
+  const handleImportBooks = async () => {
+    if (!importFile) {
+      toast.error('Vui lòng chọn file Excel');
+      return;
+    }
+    
+    setIsImporting(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', importFile);
+      const response = await api.post('/books/import', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      
+      toast.success(`✅ Import thành công! Đã thêm ${response.data.data?.added || 0} sách, cập nhật ${response.data.data?.updated || 0} sách`);
+      setImportModal(false);
+      setImportFile(null);
+      fetchBooks();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Lỗi import file');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   return (
     <Layout>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -245,7 +290,15 @@ export default function AdminBooks() {
           <h1 style={{ fontSize: 22, fontWeight: 700 }}>Quản lý sách</h1>
           <p style={{ color: '#64748b', marginTop: 4 }}>Thêm, sửa, xóa sách và quản lý đăng ký cá biệt</p>
         </div>
-        <button className="btn btn-primary" onClick={openCreate}><FiPlus /> Thêm sách</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-secondary" onClick={handleExportBooks} title="Xuất danh sách sách ra file Excel">
+            <FiDownload /> Xuất Excel
+          </button>
+          <button className="btn btn-secondary" onClick={() => setImportModal(true)} title="Nhập danh sách sách từ file Excel">
+            <FiImport /> Nhập Excel
+          </button>
+          <button className="btn btn-primary" onClick={openCreate}><FiPlus /> Thêm sách</button>
+        </div>
       </div>
 
       <div className="filters-row">
@@ -691,6 +744,49 @@ export default function AdminBooks() {
               <button className="btn btn-secondary" onClick={() => setPdfModal(false)}>Hủy</button>
               <button className="btn btn-primary" onClick={handlePdfUpload} disabled={!pdfFile || uploadingPdf}>
                 <FiUpload size={14} /> {uploadingPdf ? 'Đang upload...' : 'Upload PDF'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Import Modal */}
+      {importModal && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setImportModal(false)}>
+          <div className="modal" style={{ maxWidth: 480 }}>
+            <div className="modal-header">
+              <h3><FiImport style={{ marginRight: 8 }} />Nhập danh sách sách</h3>
+              <button className="btn btn-secondary btn-icon" onClick={() => setImportModal(false)}><FiX /></button>
+            </div>
+            <div className="modal-body">
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13 }}>
+                💡 <strong>Hướng dẫn:</strong>
+                <ul style={{ marginLeft: 20, marginTop: 6, marginBottom: 0 }}>
+                  <li>Tải file template bằng cách click "Xuất Excel" trước</li>
+                  <li>Điền thông tin sách vào file Excel</li>
+                  <li>Tải file lên để thêm hoặc cập nhật sách</li>
+                </ul>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Chọn file Excel (*.xlsx)</label>
+                <input type="file" accept=".xlsx,.xls" className="form-control"
+                  onChange={e => setImportFile(e.target.files[0])} />
+                {importFile && (
+                  <div style={{ fontSize: 12, color: '#16a34a', marginTop: 6 }}>
+                    📄 {importFile.name}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ background: '#fef3c7', border: '1px solid #fde047', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#92400e' }}>
+                ⚠️ <strong>Lưu ý:</strong> Chỉ cập nhật những trường có dữ liệu. Sách có ISBN hoặc tên giống sẽ được cập nhật, không thêm mới.
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => { setImportModal(false); setImportFile(null); }} disabled={isImporting}>Hủy</button>
+              <button className="btn btn-primary" onClick={handleImportBooks} disabled={!importFile || isImporting}>
+                {isImporting ? <>🔄 Đang nhập...</> : <>✅ Nhập dữ liệu</>}
               </button>
             </div>
           </div>
