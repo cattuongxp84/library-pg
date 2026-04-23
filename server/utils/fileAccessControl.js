@@ -5,27 +5,29 @@
  * 1. File "Không bản quyền" (Public Release)
  *    - access_level: 'private'
  *    - is_public_pdf: true
- *    - Quy tắc: Chỉ yêu cầu ĐĂNG NHẬP, có thể xem từ bất kỳ đâu (LAN hoặc WAN)
- *    - Hữu ích: Tài liệu công khai, sách có thể chia sẻ ngoài mạng
+ *    - Quy tắc: BẮT BUỘC ĐĂNG NHẬP, có thể xem từ bất kỳ đâu (LAN hoặc WAN)
+ *    - Hữu ích: Tài liệu học tập, ebook không bản quyền
  *
  * 2. File "Có bản quyền" (Copyrighted/Licensed)
  *    - access_level: 'lan'
  *    - is_public_pdf: false (tuỳ chọn)
- *    - Quy tắc: BẮT BUỘC trong mạng LAN + đăng nhập
+ *    - Quy tắc: BẮT BUỘC ĐĂNG NHẬP + CHỈ TRONG MẠNG LAN
  *               Admin/Librarian từ bất kỳ đâu cũng được
  *    - Hữu ích: Sách với bản quyền giới hạn, tránh sao lưu/chia sẻ ngoài
  *
  * 3. File "Công khai" (Public)
  *    - access_level: 'public'
- *    - is_public_pdf: true
- *    - Quy tắc: Ai cũng xem được (chưa đăng nhập cũng được)
- *    - Hữu ích: Mô tả, tóm tắt, preview
+ *    - Quy tắc: KHÔNG SỬ DỤNG - TẤT CẢ FILE ĐỀU YÊU CẦU ĐĂNG NHẬP
+ *    - Hữu ích: Dự bị (không dùng)
  *
  * 4. Tài liệu riêng tư (Private)
  *    - access_level: 'private'
  *    - is_public_pdf: false
- *    - Quy tắc: Yêu cầu đăng nhập + mượn sách
+ *    - Quy tắc: BẮT BUỘC ĐĂNG NHẬP + PHẢI MƯỢN SÁCH
  *    - Hữu ích: Tài liệu cấp cao, chỉ có người mượn mới xem
+ *
+ * ⚠️  QUAN TRỌNG: TẤT CẢ FILE ĐỀU YÊU CẦU ĐĂNG NHẬP
+ * Không có file công khai (public) có thể xem được mà không đăng nhập
  */
 
 /**
@@ -45,60 +47,25 @@ exports.canAccessBookPdf = (book, user, isLAN) => {
     return { allowed: false, reason: 'Sách không có file PDF', code: 'NO_PDF' };
   }
 
-  const level = book.access_level || 'public';
+  const level = book.access_level || 'private';
   const isStaff = user && ['admin', 'librarian'].includes(user.role);
 
   // ────────────────────────────────────────────────────────────────────────────
-  // 1. PUBLIC: Ai cũng xem được
+  // ⚠️  BƯỚC 1: KIỂM TRA ĐĂNG NHẬP (BẮTBUỘC CHO TẤT CẢ)
   // ────────────────────────────────────────────────────────────────────────────
-  if (level === 'public') {
-    return { allowed: true };
-  }
-
-  // ────────────────────────────────────────────────────────────────────────────
-  // 2. PRIVATE (không bản quyền): Chỉ yêu cầu đăng nhập
-  // ────────────────────────────────────────────────────────────────────────────
-  if (level === 'private') {
-    // Nếu is_public_pdf = true: chỉ cần đăng nhập (miễn là user hoặc staff)
-    if (book.is_public_pdf) {
-      if (!user) {
-        return {
-          allowed: false,
-          reason: 'Vui lòng đăng nhập để xem tài liệu này',
-          code: 'LOGIN_REQUIRED',
-        };
-      }
-      return { allowed: true };
-    }
-
-    // Nếu is_public_pdf = false: cần mượn sách + đăng nhập
-    if (!user) {
-      return {
-        allowed: false,
-        reason: 'Vui lòng đăng nhập để xem tài liệu này',
-        code: 'LOGIN_REQUIRED',
-      };
-    }
-
-    // Staff luôn được xem
-    if (isStaff) {
-      return { allowed: true };
-    }
-
-    // Người dùng thường phải mượn sách
+  if (!user) {
     return {
       allowed: false,
-      reason: 'Bạn cần mượn sách này để xem PDF',
-      code: 'MUST_BORROW',
-      requireBorrow: true,
+      reason: 'Vui lòng đăng nhập để xem tài liệu này',
+      code: 'LOGIN_REQUIRED',
     };
   }
 
   // ────────────────────────────────────────────────────────────────────────────
-  // 3. LAN (có bản quyền): Bắt buộc LAN + đăng nhập
+  // BƯỚC 2: KIỂM TRA LAN (CHỈ CHO FILE BẢN QUYỀN)
   // ────────────────────────────────────────────────────────────────────────────
   if (level === 'lan') {
-    // Staff từ bất kỳ đâu cũng được
+    // Admin/Librarian luôn được từ bất kỳ đâu
     if (isStaff) {
       return { allowed: true };
     }
@@ -113,24 +80,31 @@ exports.canAccessBookPdf = (book, user, isLAN) => {
       };
     }
 
-    // Từ LAN + cần đăng nhập
-    if (!user) {
-      return {
-        allowed: false,
-        reason: 'Vui lòng đăng nhập để xem tài liệu này',
-        code: 'LOGIN_REQUIRED',
-      };
-    }
-
     return { allowed: true };
   }
 
-  // Mặc định: từ chối
-  return {
-    allowed: false,
-    reason: 'Bạn không có quyền truy cập tài liệu này',
-    code: 'ACCESS_DENIED',
-  };
+  // ────────────────────────────────────────────────────────────────────────────
+  // BƯỚC 3: KIỂM TRA MƯỢN SÁCH (NẾU CẦN)
+  // ────────────────────────────────────────────────────────────────────────────
+  if (!book.is_public_pdf) {
+    // Admin/Librarian bypass
+    if (isStaff) {
+      return { allowed: true };
+    }
+
+    // Người dùng thường phải mượn sách
+    return {
+      allowed: false,
+      reason: 'Bạn cần mượn sách này để xem PDF',
+      code: 'MUST_BORROW',
+      requireBorrow: true,
+    };
+  }
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // ✅ ĐƯỢC PHÉP (đã đăng nhập + không bị hạn chế thêm)
+  // ────────────────────────────────────────────────────────────────────────────
+  return { allowed: true };
 };
 
 /**
