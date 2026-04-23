@@ -34,13 +34,13 @@ export default function AdminCategories() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Xóa thể loại này?')) return;
+    if (!window.confirm('Xóa thể loại này? (Nếu còn sách sẽ không thể xóa)')) return;
     try {
       await api.delete(`/categories/${id}`);
       toast.success('Đã xóa thể loại');
       fetchCategories();
     } catch (err) {
-      toast.error('Lỗi xóa thể loại');
+      toast.error(err.response?.data?.message || 'Lỗi xóa thể loại');
     }
   };
 

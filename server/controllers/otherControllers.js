@@ -29,6 +29,16 @@ exports.deleteCategory = async (req, res) => {
   try {
     const c = await Category.findByPk(req.params.id);
     if (!c) return res.status(404).json({ success: false, message: 'Không tìm thấy' });
+    
+    // Kiểm tra xem có sách nào thuộc danh mục này không
+    const bookCount = await Book.count({ where: { category_id: c.id, is_active: true } });
+    if (bookCount > 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Không thể xóa danh mục này vì còn ${bookCount} cuốn sách. Vui lòng chuyển hoặc xóa sách trước.` 
+      });
+    }
+    
     await c.update({ is_active: false });
     res.json({ success: true, message: 'Đã xóa' });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }

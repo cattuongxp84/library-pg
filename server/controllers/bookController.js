@@ -53,7 +53,13 @@ exports.getBooks = async (req, res) => {
 
     const { count, rows } = await Book.findAndCountAll({
       where,
-      include: [{ model: Category, as: 'category', attributes: ['id', 'name'] }],
+      include: [{ 
+        model: Category, 
+        as: 'category', 
+        attributes: ['id', 'name'],
+        where: { is_active: true },
+        required: false, // LEFT JOIN để sách không có danh mục vẫn hiển thị
+      }],
       order: [[sort, order]],
       limit: parseInt(limit),
       offset: (parseInt(page) - 1) * parseInt(limit),
