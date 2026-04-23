@@ -12,16 +12,25 @@ export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate  = useNavigate();
   const location  = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
   const [borrowOpen, setBorrowOpen] = useState(
     // Mở sẵn nếu đang ở trang mượn/trả
     location.pathname.startsWith('/admin/borrow') || location.pathname.startsWith('/admin/return')
   );
 
-  // Đóng sidebar khi navigate
   useEffect(() => {
-    setSidebarOpen(false);
-  }, [location.pathname]);
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [location.pathname, isMobile]);
 
   const handleLogout = () => { logout(); navigate('/login'); };
   const isAdmin = ['admin', 'librarian'].includes(user?.role);
@@ -64,14 +73,14 @@ export default function Layout({ children }) {
   return (
     <div style={{ display:'flex', minHeight:'100vh' }}>
       {/* ── OVERLAY (Mobile) ── */}
-      {sidebarOpen && (
+      {sidebarOpen && isMobile && (
         <div 
           style={{
             position: 'fixed',
             inset: 0,
             background: 'rgba(0, 0, 0, 0.5)',
             zIndex: 999,
-            display: 'none',
+            display: 'block',
           }}
           className={sidebarOpen ? 'sidebar-overlay open' : 'sidebar-overlay'}
           onClick={() => setSidebarOpen(false)}
@@ -87,7 +96,7 @@ export default function Layout({ children }) {
         transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
         transition: 'transform 0.3s ease',
       }}
-      className={sidebarOpen ? 'open' : ''}>
+      className={sidebarOpen ? 'open' : 'closed'}>
         {/* Logo */}
         <div style={{ padding: '18px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)',
           display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -221,7 +230,7 @@ export default function Layout({ children }) {
       </div>
 
       {/* ── MAIN CONTENT ── */}
-      <div style={{ flex: 1, marginLeft: 240, display: 'flex', flexDirection: 'column', minHeight: '100vh' }} className="main-content">
+      <div style={{ flex: 1, marginLeft: sidebarOpen && !isMobile ? 240 : 0, display: 'flex', flexDirection: 'column', minHeight: '100vh', transition: 'margin-left 0.3s ease' }} className="main-content">
         {/* Topbar */}
         <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0',
           padding: '0 24px', height: 60, display: 'flex', alignItems: 'center',

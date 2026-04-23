@@ -42,7 +42,8 @@ a { color: var(--primary); text-decoration: none; }
 .sidebar-nav a:hover { background: rgba(255,255,255,0.05); color: #fff; }
 .sidebar-nav a.active { background: rgba(37,99,235,0.15); color: #60a5fa; border-left-color: #60a5fa; }
 .sidebar-nav .nav-section { padding: 16px 20px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #475569; }
-.main-content { flex: 1; margin-left: 240px; }
+.main-content { flex: 1; margin-left: 240px; transition: margin-left 0.3s ease; }
+.sidebar.closed { transform: translateX(-100%); }
 .topbar { background: #fff; border-bottom: 1px solid var(--border); padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
 .topbar-right { display: flex; align-items: center; gap: 16px; }
 .user-menu { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; border-radius: 8px; }

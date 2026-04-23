@@ -71,52 +71,81 @@ img { max-width: 100%; }
   top: 0;
   z-index: 100;
   height: var(--nav-h);
-  background: rgba(255,255,255,0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border);
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
   padding: 0 24px;
-  gap: 32px;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+  gap: 16px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 .navbar-brand {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
-  color: var(--blue);
+  color: #111827;
   letter-spacing: -0.3px;
   white-space: nowrap;
 }
-.navbar-brand svg { flex-shrink: 0; }
+.navbar-brand svg { flex-shrink: 0; color: #2563eb; }
 .navbar-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 12px;
   flex: 1;
 }
 .nav-link {
-  padding: 7px 14px;
-  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  border-radius: 999px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-2);
+  color: #475569;
   transition: var(--transition);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   white-space: nowrap;
 }
-.nav-link:hover { color: var(--blue); background: var(--blue-light); }
-.nav-link.active { color: var(--blue); background: var(--blue-light); font-weight: 600; }
+.nav-link:hover { color: #1d4ed8; background: #eff6ff; }
+.nav-link.active { color: #1d4ed8; background: #eff6ff; font-weight: 600; }
 .navbar-user {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin-left: auto;
+}
+
+.avatar-sm {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.18);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.18);
+  border: none;
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%);
+}
+.btn-secondary {
+  background: #f8fafc;
+  color: #334155;
+  border: 1px solid #d1d5db;
+}
+.btn-secondary:hover {
+  background: #e2e8f0;
 }
 .avatar-sm {
   width: 34px; height: 34px;

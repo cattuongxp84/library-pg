@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { FiBook, FiUser, FiLogOut, FiLogIn, FiMessageSquare, FiList, FiBookmark, FiMenu, FiX } from 'react-icons/fi';
+import { FiBookOpen, FiHome, FiBook, FiUser, FiLogOut, FiLogIn, FiMessageSquare, FiList, FiBookmark, FiMenu, FiX } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -12,12 +12,12 @@ export default function Navbar() {
   const handleLogout = () => { logout(); navigate('/'); setMobileOpen(false); };
 
   const navLinks = [
-    { to: '/', label: 'Trang chủ', end: true },
-    { to: '/books', label: 'Danh mục sách' },
+    { to: '/', label: 'Trang chủ', icon: <FiHome size={14} />, end: true },
+    { to: '/books', label: 'Danh mục sách', icon: <FiBook size={14} /> },
     ...(user ? [
-      { to: '/my-borrows', label: 'Sách đang mượn', icon: <FiList size={13} /> },
-      { to: '/my-reservations', label: 'Đặt trước', icon: <FiBookmark size={13} /> },
-      { to: '/messages', label: 'Liên hệ', icon: <FiMessageSquare size={13} /> },
+      { to: '/my-borrows', label: 'Sách đang mượn', icon: <FiList size={14} /> },
+      { to: '/my-reservations', label: 'Đặt trước', icon: <FiBookmark size={14} /> },
+      { to: '/messages', label: 'Liên hệ', icon: <FiMessageSquare size={14} /> },
     ] : []),
   ];
 
@@ -25,7 +25,7 @@ export default function Navbar() {
     <>
       <nav className="navbar">
         <Link to="/" className="navbar-brand">
-          <FiBook size={20} />
+          <FiBookOpen size={22} />
           Phần mềm mượn trả sách
         </Link>
 
