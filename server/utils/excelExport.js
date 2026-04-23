@@ -183,6 +183,185 @@ exports.exportComprehensiveReport = async (stats) => {
   return { filename, filepath };
 };
 
+const normalizeValue = (value) => {
+  if (value === undefined || value === null) return '';
+  if (typeof value === 'object' && value.text !== undefined) return value.text.toString().trim();
+  return value.toString().trim();
+};
+
+exports.exportBooks = async (books) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Books');
+
+  worksheet.columns = [
+    { header: 'Title', key: 'title', width: 35 },
+    { header: 'Author', key: 'author', width: 25 },
+    { header: 'ISBN', key: 'isbn', width: 16 },
+    { header: 'Category', key: 'category', width: 18 },
+    { header: 'Department', key: 'department', width: 18 },
+    { header: 'Publisher', key: 'publisher', width: 20 },
+    { header: 'Publish Year', key: 'publish_year', width: 14 },
+    { header: 'Edition', key: 'edition', width: 12 },
+    { header: 'Total Copies', key: 'total_copies', width: 12 },
+    { header: 'Available Copies', key: 'available_copies', width: 14 },
+    { header: 'Location', key: 'location', width: 18 },
+    { header: 'Language', key: 'language', width: 14 },
+    { header: 'Pages', key: 'pages', width: 10 },
+    { header: 'Tags', key: 'tags', width: 20 },
+    { header: 'Deposit', key: 'deposit', width: 12 },
+    { header: 'PDF URL', key: 'pdf_url', width: 40 },
+    { header: 'Public PDF', key: 'is_public_pdf', width: 12 },
+    { header: 'Access Level', key: 'access_level', width: 12 },
+    { header: 'Active', key: 'is_active', width: 10 },
+    { header: 'Description', key: 'description', width: 40 },
+  ];
+
+  worksheet.getRow(1).style = headerStyle;
+  worksheet.getRow(1).height = 25;
+
+  books.forEach(book => {
+    worksheet.addRow({
+      title: book.title,
+      author: book.author,
+      isbn: book.isbn,
+      category: book.category?.name || '',
+      department: book.department?.name || '',
+      publisher: book.publisher || '',
+      publish_year: book.publish_year || '',
+      edition: book.edition || '',
+      total_copies: book.total_copies || 0,
+      available_copies: book.available_copies || 0,
+      location: book.location || '',
+      language: book.language || '',
+      pages: book.pages || '',
+      tags: Array.isArray(book.tags) ? book.tags.join(', ') : book.tags || '',
+      deposit: book.deposit || 0,
+      pdf_url: book.pdf_url || '',
+      is_public_pdf: book.is_public_pdf ? 'TRUE' : 'FALSE',
+      access_level: book.access_level || 'public',
+      is_active: book.is_active ? 'TRUE' : 'FALSE',
+      description: book.description || '',
+    });
+  });
+
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber > 1) {
+      row.eachCell(cell => { cell.style = cellStyle; });
+    }
+  });
+
+  const filename = `books-${new Date().toISOString().split('T')[0]}.xlsx`;
+  const filepath = path.join(tmpDir, filename);
+  await workbook.xlsx.writeFile(filepath);
+  return { filename, filepath };
+};
+
+exports.exportUsers = async (users) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Users');
+
+  worksheet.columns = [
+    { header: 'Name', key: 'name', width: 24 },
+    { header: 'Email', key: 'email', width: 28 },
+    { header: 'Password', key: 'password', width: 18 },
+    { header: 'Student ID', key: 'student_id', width: 18 },
+    { header: 'Phone', key: 'phone', width: 16 },
+    { header: 'Address', key: 'address', width: 40 },
+    { header: 'Role', key: 'role', width: 12 },
+    { header: 'Active', key: 'is_active', width: 10 },
+  ];
+
+  worksheet.getRow(1).style = headerStyle;
+  worksheet.getRow(1).height = 25;
+
+  users.forEach(user => {
+    worksheet.addRow({
+      name: user.name,
+      email: user.email,
+      password: '',
+      student_id: user.student_id || '',
+      phone: user.phone || '',
+      address: user.address || '',
+      role: user.role || 'user',
+      is_active: user.is_active ? 'TRUE' : 'FALSE',
+    });
+  });
+
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber > 1) row.eachCell(cell => { cell.style = cellStyle; });
+  });
+
+  const filename = `users-${new Date().toISOString().split('T')[0]}.xlsx`;
+  const filepath = path.join(tmpDir, filename);
+  await workbook.xlsx.writeFile(filepath);
+  return { filename, filepath };
+};
+
+exports.parseBooksFile = async (filepath) => {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(filepath);
+  const worksheet = workbook.getWorksheet(1);
+  const data = [];
+
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return;
+
+    const rowData = {
+      title: normalizeValue(row.getCell(1).value),
+      author: normalizeValue(row.getCell(2).value),
+      isbn: normalizeValue(row.getCell(3).value),
+      category: normalizeValue(row.getCell(4).value),
+      department: normalizeValue(row.getCell(5).value),
+      publisher: normalizeValue(row.getCell(6).value),
+      publish_year: parseInt(normalizeValue(row.getCell(7).value)) || null,
+      edition: normalizeValue(row.getCell(8).value),
+      total_copies: parseInt(normalizeValue(row.getCell(9).value)) || 1,
+      available_copies: parseInt(normalizeValue(row.getCell(10).value)) || null,
+      location: normalizeValue(row.getCell(11).value),
+      language: normalizeValue(row.getCell(12).value),
+      pages: parseInt(normalizeValue(row.getCell(13).value)) || null,
+      tags: normalizeValue(row.getCell(14).value).split(',').map(v => v.trim()).filter(Boolean),
+      deposit: parseInt(normalizeValue(row.getCell(15).value)) || 0,
+      pdf_url: normalizeValue(row.getCell(16).value),
+      is_public_pdf: normalizeValue(row.getCell(17).value).toLowerCase() === 'true',
+      access_level: normalizeValue(row.getCell(18).value) || 'public',
+      is_active: normalizeValue(row.getCell(19).value).toLowerCase() !== 'false',
+      description: normalizeValue(row.getCell(20).value),
+    };
+
+    if (rowData.title && rowData.author) data.push(rowData);
+  });
+
+  return data;
+};
+
+exports.parseUsersFile = async (filepath) => {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(filepath);
+  const worksheet = workbook.getWorksheet(1);
+  const data = [];
+
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return;
+
+    const email = normalizeValue(row.getCell(2).value).toLowerCase();
+    if (!email) return;
+
+    data.push({
+      name: normalizeValue(row.getCell(1).value) || 'Unknown',
+      email,
+      password: normalizeValue(row.getCell(3).value) || '123456',
+      student_id: normalizeValue(row.getCell(4).value),
+      phone: normalizeValue(row.getCell(5).value),
+      address: normalizeValue(row.getCell(6).value),
+      role: normalizeValue(row.getCell(7).value) || 'user',
+      is_active: normalizeValue(row.getCell(8).value).toLowerCase() !== 'false',
+    });
+  });
+
+  return data;
+};
+
 // ─── Import kiểm kê từ Excel ────────────────────────────────────────────────
 exports.parseInventoryFile = async (filepath) => {
   const workbook = new ExcelJS.Workbook();

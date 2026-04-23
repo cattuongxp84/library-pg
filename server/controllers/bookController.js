@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
-const { Book, Category } = require('../models');
+const { Book, Category, Department } = require('../models');
 const { isLanIP } = require('../middleware/lanAccess');
+const { parseBooksFile, exportBooks } = require('../utils/excelExport');
 const cloudinary = require('cloudinary').v2;
 
 cloudinary.config({
@@ -75,6 +76,89 @@ exports.getBook = async (req, res) => {
     res.json({ success: true, data: book });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.exportBooks = async (req, res) => {
+  try {
+    const books = await Book.findAll({
+      include: [
+        { model: Category, as: 'category', attributes: ['id', 'name'] },
+        { model: Department, as: 'department', attributes: ['id', 'name'] },
+      ],
+    });
+
+    const { filename, filepath } = await exportBooks(books);
+    res.download(filepath, filename, err => {
+      if (err) return res.status(500).json({ success: false, message: err.message });
+      try { fs.unlinkSync(filepath); } catch (e) { console.warn('Không xóa được file tạm:', e.message); }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.importBooks = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'Vui lòng tải lên file Excel' });
+    const rows = await parseBooksFile(req.file.path);
+    const results = [];
+
+    for (const row of rows) {
+      const categoryName = row.category || 'Khác';
+      const [category] = await Category.findOrCreate({ where: { name: categoryName }, defaults: { name: categoryName } });
+      const departmentName = row.department || null;
+      let department = null;
+      if (departmentName) {
+        [department] = await Department.findOrCreate({ where: { name: departmentName }, defaults: { name: departmentName } });
+      }
+
+      const payload = {
+        title: row.title,
+        author: row.author,
+        isbn: row.isbn || null,
+        category_id: category.id,
+        department_id: department?.id || null,
+        publisher: row.publisher,
+        publish_year: row.publish_year,
+        edition: row.edition,
+        total_copies: row.total_copies,
+        available_copies: row.available_copies || row.total_copies,
+        location: row.location,
+        language: row.language,
+        pages: row.pages,
+        tags: row.tags,
+        deposit: row.deposit,
+        pdf_url: row.pdf_url,
+        is_public_pdf: row.is_public_pdf,
+        access_level: row.access_level,
+        is_active: row.is_active,
+        description: row.description,
+      };
+
+      if (payload.deposit) payload.deposit = roundPrice(parseInt(payload.deposit));
+
+      let book = null;
+      if (payload.isbn) {
+        book = await Book.findOne({ where: { isbn: payload.isbn } });
+      }
+
+      if (book) {
+        await book.update(payload);
+        results.push({ status: 'updated', id: book.id, title: book.title, isbn: book.isbn });
+      } else {
+        book = await Book.create(payload);
+        results.push({ status: 'created', id: book.id, title: book.title, isbn: book.isbn });
+      }
+    }
+
+    res.json({ success: true, message: 'Đã import sách', total: rows.length, results });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  } finally {
+    if (req.file && req.file.path) {
+      try { fs.unlinkSync(req.file.path); } catch (e) { console.warn('Không xóa được file tạm import:', e.message); }
+    }
   }
 };
 
