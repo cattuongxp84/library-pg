@@ -1,24 +1,26 @@
 const { Op } = require('sequelize');
 const { Book, Category } = require('../models');
 const { isLanIP } = require('../middleware/lanAccess');
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // ─── Helper: làm tròn giá tiền ───────────────────────────────────────────────
 const roundPrice = (price) => {
   if (!price || price <= 0) return 0;
-  // Làm tròn lên đến bội số của 10000 (10k VNĐ)
   return Math.ceil(price / 10000) * 10000;
 };
 
 // ─── Helper: lọc sách theo quyền mạng ────────────────────────────────────────
-// Nếu request từ WAN → chỉ trả sách access_level = 'public'
-// Nếu request từ LAN → trả sách 'public' + 'lan'
-// Nếu đã đăng nhập   → trả thêm sách 'private'
 const buildAccessFilter = (req) => {
   const isLAN  = req.isLAN  || false;
   const isAuth = !!req.user;
   const isStaff = isAuth && ['admin', 'librarian'].includes(req.user.role);
 
-  // Staff xem tất cả
   if (isStaff) return {};
 
   const allowed = ['public'];
@@ -70,7 +72,6 @@ exports.getBook = async (req, res) => {
     if (!book || !book.is_active)
       return res.status(404).json({ success: false, message: 'Không tìm thấy sách' });
 
-    // Kiểm tra quyền truy cập theo mạng
     const isStaff = req.user && ['admin', 'librarian'].includes(req.user.role);
     if (!isStaff) {
       const level  = book.access_level || 'public';
@@ -148,7 +149,20 @@ exports.uploadBookPdf = async (req, res) => {
     if (!book) return res.status(404).json({ success: false, message: 'Không tìm thấy sách' });
     if (!req.file) return res.status(400).json({ success: false, message: 'Không có file PDF' });
 
-    const pdf_url       = `/uploads/pdfs/${req.file.filename}`;
+    // Xóa PDF cũ trên Cloudinary nếu có
+    if (book.pdf_url && book.pdf_url.includes('cloudinary')) {
+      try {
+        const parts   = book.pdf_url.split('/');
+        const folder  = parts[parts.length - 2];
+        const filename = parts[parts.length - 1].replace('.pdf', '');
+        await cloudinary.uploader.destroy(`${folder}/${filename}`, { resource_type: 'raw' });
+      } catch (e) {
+        console.warn('Không xóa được PDF cũ trên Cloudinary:', e.message);
+      }
+    }
+
+    // req.file.path là Cloudinary URL khi dùng multer-storage-cloudinary
+    const pdf_url       = req.file.path;
     const is_public_pdf = req.body.is_public_pdf === 'true';
     const access_level  = req.body.access_level  || book.access_level || 'public';
     await book.update({ pdf_url, is_public_pdf, access_level });
@@ -160,15 +174,22 @@ exports.uploadBookPdf = async (req, res) => {
 
 // ─── DELETE /api/books/:id/pdf ────────────────────────────────────────────────
 exports.deleteBookPdf = async (req, res) => {
-  const fs   = require('fs');
-  const path = require('path');
   try {
     const book = await Book.findByPk(req.params.id);
     if (!book) return res.status(404).json({ success: false, message: 'Không tìm thấy sách' });
-    if (book.pdf_url) {
-      const filePath = path.join(__dirname, '..', book.pdf_url);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+    // Xóa file trên Cloudinary
+    if (book.pdf_url && book.pdf_url.includes('cloudinary')) {
+      try {
+        const parts    = book.pdf_url.split('/');
+        const folder   = parts[parts.length - 2];
+        const filename = parts[parts.length - 1].replace('.pdf', '');
+        await cloudinary.uploader.destroy(`${folder}/${filename}`, { resource_type: 'raw' });
+      } catch (e) {
+        console.warn('Không xóa được PDF trên Cloudinary:', e.message);
+      }
     }
+
     await book.update({ pdf_url: null, is_public_pdf: false });
     res.json({ success: true, message: 'Đã xóa PDF' });
   } catch (err) {
@@ -178,7 +199,6 @@ exports.deleteBookPdf = async (req, res) => {
 
 // ─── GET /api/books/:id/pdf ───────────────────────────────────────────────────
 exports.getBookPdf = async (req, res) => {
-  const path = require('path');
   try {
     const book = await Book.findByPk(req.params.id);
     if (!book || !book.pdf_url)
@@ -189,7 +209,6 @@ exports.getBookPdf = async (req, res) => {
     const isLAN   = req.isLAN || false;
 
     if (!isStaff) {
-      // Kiểm tra access_level trước
       if (level === 'lan' && !isLAN) {
         return res.status(403).json({
           success: false,
@@ -205,22 +224,19 @@ exports.getBookPdf = async (req, res) => {
         });
       }
 
-      // Sau đó kiểm tra is_public_pdf (chỉ người đang mượn mới đọc được)
       if (!book.is_public_pdf) {
         if (!req.user) return res.status(401).json({ success: false, message: 'Chưa đăng nhập' });
         const { Borrow } = require('../models');
         const active = await Borrow.findOne({
-          where: { user_id: req.user.id, book_id: book.id, status: { [Op.in]: ['borrowed','renewed'] } },
+          where: { user_id: req.user.id, book_id: book.id, status: { [Op.in]: ['borrowed', 'renewed'] } },
         });
         if (!active)
           return res.status(403).json({ success: false, message: 'Bạn cần mượn sách này để đọc PDF' });
       }
     }
 
-    const filePath = path.join(__dirname, '..', book.pdf_url);
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'inline');
-    res.sendFile(filePath);
+    // Redirect thẳng đến Cloudinary URL
+    res.redirect(book.pdf_url);
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
