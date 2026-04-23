@@ -198,44 +198,66 @@ exports.deleteBookPdf = async (req, res) => {
 };
 
 // ─── GET /api/books/:id/pdf ───────────────────────────────────────────────────
+/**
+ * Lấy PDF của sách với kiểm soát quyền truy cập:
+ *
+ * 📋 QUY TẮC TRUY CẬP:
+ *   1. PUBLIC (access_level='public'): Ai cũng xem được
+ *   2. PRIVATE + is_public_pdf=true (không bản quyền): Chỉ cần đăng nhập, xem từ bất kỳ đâu
+ *   3. PRIVATE + is_public_pdf=false: Phải đăng nhập + mượn sách
+ *   4. LAN (access_level='lan', có bản quyền): Phải trong LAN + đăng nhập
+ *      → Admin/Librarian: được từ bất kỳ đâu
+ *
+ * 📍 LAN IP: Được xác định bởi x-forwarded-for header hoặc remoteAddress
+ *    Mặc định: 192.168.x.x, 10.x.x.x, 172.16-31.x.x, 127.x (localhost)
+ */
 exports.getBookPdf = async (req, res) => {
   try {
     const book = await Book.findByPk(req.params.id);
     if (!book || !book.pdf_url)
       return res.status(404).json({ success: false, message: 'Sách không có file PDF' });
 
-    const isStaff = req.user && ['admin', 'librarian'].includes(req.user.role);
-    const level   = book.access_level || 'public';
-    const isLAN   = req.isLAN || false;
+    // Kiểm soát truy cập
+    const { canAccessBookPdf, requiresBorrow } = require('../utils/fileAccessControl');
+    const accessResult = canAccessBookPdf(book, req.user, req.isLAN);
 
-    if (!isStaff) {
-      if (level === 'lan' && !isLAN) {
+    if (!accessResult.allowed) {
+      const statusCode = 
+        accessResult.code === 'LOGIN_REQUIRED' ? 401 :
+        accessResult.code === 'NO_PDF' ? 404 :
+        403;
+
+      return res.status(statusCode).json({
+        success: false,
+        message: accessResult.reason,
+        code: accessResult.code,
+        // Gợi ý: nếu cần mượn sách, gửi flag cho frontend
+        ...(accessResult.requireBorrow && { hint: 'Vui lòng mượn sách này để xem PDF' }),
+        ...(accessResult.requireLAN && { hint: 'Vui lòng truy cập từ mạng nội bộ của trường' }),
+      });
+    }
+
+    // Nếu yêu cầu mượn sách, kiểm tra xem user có mượn không
+    if (requiresBorrow(book) && req.user) {
+      const { Borrow } = require('../models');
+      const { Op } = require('sequelize');
+      const active = await Borrow.findOne({
+        where: { 
+          user_id: req.user.id, 
+          book_id: book.id, 
+          status: { [Op.in]: ['borrowed', 'renewed'] } 
+        },
+      });
+      if (!active) {
         return res.status(403).json({
           success: false,
-          message: 'PDF này chỉ đọc được trên mạng nội bộ (LAN)',
-          code: 'LAN_ONLY',
+          message: 'Bạn cần mượn sách này để xem PDF',
+          code: 'MUST_BORROW',
         });
-      }
-      if (level === 'private' && !req.user) {
-        return res.status(401).json({
-          success: false,
-          message: 'Vui lòng đăng nhập để đọc tài liệu này',
-          code: 'LOGIN_REQUIRED',
-        });
-      }
-
-      if (!book.is_public_pdf) {
-        if (!req.user) return res.status(401).json({ success: false, message: 'Chưa đăng nhập' });
-        const { Borrow } = require('../models');
-        const active = await Borrow.findOne({
-          where: { user_id: req.user.id, book_id: book.id, status: { [Op.in]: ['borrowed', 'renewed'] } },
-        });
-        if (!active)
-          return res.status(403).json({ success: false, message: 'Bạn cần mượn sách này để đọc PDF' });
       }
     }
 
-    // Redirect thẳng đến Cloudinary URL
+    // ✅ Cho phép truy cập — redirect đến PDF URL
     res.redirect(book.pdf_url);
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

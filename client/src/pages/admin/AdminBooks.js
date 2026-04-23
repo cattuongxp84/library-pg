@@ -377,12 +377,36 @@ export default function AdminBooks() {
 
                   {/* Phân quyền truy cập theo mạng */}
                   <div className="form-group" style={{ gridColumn: '1/-1' }}>
-                    <label className="form-label">🔒 Phân quyền truy cập</label>
+                    <label className="form-label">🔒 Phân quyền truy cập & Bản quyền</label>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginTop: 6 }}>
                       {[
-                        { value: 'public',  icon: '🌐', title: 'Công khai', desc: 'Ai cũng xem được (cả Internet & LAN)', color: '#16a34a', bg: '#f0fdf4' },
-                        { value: 'lan',     icon: '🏫', title: 'Chỉ nội bộ (LAN)', desc: 'Chỉ xem được khi kết nối mạng trường', color: '#2563eb', bg: '#eff6ff' },
-                        { value: 'private', icon: '🔐', title: 'Phải đăng nhập', desc: 'Cần tài khoản (cả LAN lẫn Internet)', color: '#d97706', bg: '#fffbeb' },
+                        { 
+                          value: 'public',  
+                          icon: '🌐', 
+                          title: 'Công khai', 
+                          desc: 'Không bản quyền — Ai cũng xem (Internet & LAN)',
+                          detail: 'Phù hợp: Tài liệu open-source, preview',
+                          color: '#16a34a', 
+                          bg: '#f0fdf4' 
+                        },
+                        { 
+                          value: 'lan',     
+                          icon: '🏫', 
+                          title: 'Chỉ nội bộ (LAN)', 
+                          desc: 'Có bản quyền — Chỉ xem trong mạng trường',
+                          detail: 'Phù hợp: Sách có bản quyền, tránh sao lưu',
+                          color: '#2563eb', 
+                          bg: '#eff6ff' 
+                        },
+                        { 
+                          value: 'private', 
+                          icon: '🔐', 
+                          title: 'Phải đăng nhập', 
+                          desc: 'Không bản quyền — Cần tài khoản (LAN & Internet)',
+                          detail: 'Phù hợp: Tài liệu học tập, chỉ cho sinh viên',
+                          color: '#d97706', 
+                          bg: '#fffbeb' 
+                        },
                       ].map(opt => (
                         <label key={opt.value} style={{
                           display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer',
@@ -397,9 +421,17 @@ export default function AdminBooks() {
                           <div>
                             <div style={{ fontWeight: 600, fontSize: 13 }}>{opt.icon} {opt.title}</div>
                             <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{opt.desc}</div>
+                            <div style={{ fontSize: 10, color: opt.color, marginTop: 4, fontStyle: 'italic' }}>{opt.detail}</div>
                           </div>
                         </label>
                       ))}
+                    </div>
+                    <div style={{ marginTop: 12, padding: '10px 12px', background: '#f0fdf4', borderRadius: 8, fontSize: 11, color: '#166534', borderLeft: '3px solid #16a34a' }}>
+                      💡 <strong>Ghi chú:</strong> 
+                      <ul style={{ marginLeft: 20, marginTop: 6 }}>
+                        <li><strong>LAN (bản quyền):</strong> Người dùng phải đăng nhập + truy cập từ mạng trường. Admin/Thủ thư được từ bất kỳ đâu.</li>
+                        <li><strong>Phải đăng nhập:</strong> Người dùng chỉ cần đăng nhập, có thể xem từ ngoài mạng.</li>
+                      </ul>
                     </div>
                   </div>
                   <div className="form-group" style={{ gridColumn: '1/-1' }}>
