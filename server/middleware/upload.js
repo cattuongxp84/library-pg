@@ -14,7 +14,8 @@ const storage = new CloudinaryStorage({
     folder: 'library-pdfs',
     resource_type: 'raw',
     format: 'pdf',
-    access_mode: 'public', // ← thêm dòng này
+    type: 'upload',        // ← thêm
+    access_mode: 'public', // ← thêm
     public_id: (req, file) => {
       const safe = file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '_');
       return `${Date.now()}-${safe}`;
