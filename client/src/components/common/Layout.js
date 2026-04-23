@@ -1,21 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import {
   FiHome, FiBook, FiList, FiDollarSign, FiBookmark, FiInbox,
   FiUser, FiLogOut, FiUsers, FiBarChart2, FiTag, FiTrendingUp,
-  FiRepeat, FiChevronDown, FiChevronRight, FiCheckSquare,
+  FiRepeat, FiChevronDown, FiChevronRight, FiCheckSquare, FiMenu, FiX,
 } from 'react-icons/fi';
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate  = useNavigate();
   const location  = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [borrowOpen, setBorrowOpen] = useState(
     // Mở sẵn nếu đang ở trang mượn/trả
     location.pathname.startsWith('/admin/borrow') || location.pathname.startsWith('/admin/return')
   );
+
+  // Đóng sidebar khi navigate
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = () => { logout(); navigate('/login'); };
   const isAdmin = ['admin', 'librarian'].includes(user?.role);
@@ -57,13 +63,31 @@ export default function Layout({ children }) {
 
   return (
     <div style={{ display:'flex', minHeight:'100vh' }}>
+      {/* ── OVERLAY (Mobile) ── */}
+      {sidebarOpen && (
+        <div 
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 999,
+            display: 'none',
+          }}
+          className={sidebarOpen ? 'sidebar-overlay open' : 'sidebar-overlay'}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* ── SIDEBAR ── */}
       <div style={{
         width: 240, background: '#1e293b', color: '#fff',
         flexShrink: 0, display: 'flex', flexDirection: 'column',
         position: 'fixed', height: '100vh', overflowY: 'auto', zIndex: 100,
         scrollbarWidth: 'none',
-      }}>
+        transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+        transition: 'transform 0.3s ease',
+      }}
+      className={sidebarOpen ? 'open' : ''}>
         {/* Logo */}
         <div style={{ padding: '18px 20px', borderBottom: '1px solid rgba(255,255,255,0.08)',
           display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -197,14 +221,33 @@ export default function Layout({ children }) {
       </div>
 
       {/* ── MAIN CONTENT ── */}
-      <div style={{ flex: 1, marginLeft: 240, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <div style={{ flex: 1, marginLeft: 240, display: 'flex', flexDirection: 'column', minHeight: '100vh' }} className="main-content">
         {/* Topbar */}
         <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0',
           padding: '0 24px', height: 60, display: 'flex', alignItems: 'center',
           justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50,
           boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#64748b' }}>
-            Phần mềm mượn trả sách
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {/* Hamburger Menu Button */}
+            <button 
+              className="mobile-menu-btn"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '8px',
+                color: '#1e293b',
+                fontSize: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+              {sidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+            </button>
+            <div style={{ fontSize: 15, fontWeight: 600, color: '#64748b' }}>
+              Phần mềm mượn trả sách
+            </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {user?.unpaidFines > 0 && (

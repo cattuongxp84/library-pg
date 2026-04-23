@@ -636,17 +636,184 @@ tbody tr:last-child td { border-bottom: none; }
 .footer-link:hover { color: #60a5fa; }
 
 /* ── Responsive ────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .navbar { padding: 0 16px; gap: 16px; }
-  .navbar-nav { display: none; }
-  .auth-card { padding: 28px 20px; }
-  .books-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
-  .hero { padding: 40px 16px 36px; }
-  .hero-search { padding: 5px 5px 5px 16px; }
-  .section { padding-top: 24px; padding-bottom: 28px; }
-  th, td { padding: 10px 12px; }
+@media (max-width: 960px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
 }
+
+@media (max-width: 768px) {
+  .navbar { 
+    padding: 0 16px; 
+    gap: 16px; 
+    flex-wrap: wrap;
+  }
+  .navbar-nav { 
+    display: none; 
+  }
+  .navbar-brand {
+    font-size: 15px;
+  }
+  .auth-card { 
+    padding: 28px 20px; 
+    border-radius: var(--radius);
+  }
+  .books-grid { 
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+    gap: 12px; 
+  }
+  .book-cover {
+    aspect-ratio: 3/4;
+  }
+  .hero { 
+    padding: 40px 16px 36px; 
+  }
+  .hero h1 {
+    font-size: 24px;
+  }
+  .hero-search { 
+    padding: 5px 5px 5px 16px;
+    flex-direction: column;
+  }
+  .hero-search input {
+    font-size: 14px;
+  }
+  .hero-search button {
+    width: 100%;
+  }
+  .section { 
+    padding-top: 24px; 
+    padding-bottom: 28px; 
+  }
+  .container {
+    padding: 0 16px;
+  }
+  th, td { 
+    padding: 10px 12px; 
+    font-size: 13px;
+  }
+  .section-title {
+    font-size: 17px;
+  }
+  .feature-card {
+    padding: 16px;
+  }
+  .borrow-card {
+    padding: 14px;
+  }
+  .cat-pill {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}
+
 @media (max-width: 480px) {
-  .books-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .auth-card { padding: 24px 16px; border-radius: var(--radius); }
+  .navbar {
+    height: auto;
+    min-height: 48px;
+    padding: 8px 12px;
+  }
+  .navbar-brand {
+    font-size: 14px;
+  }
+  .navbar-brand svg {
+    width: 18px;
+    height: 18px;
+  }
+  .navbar-user {
+    width: 100%;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .books-grid { 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 10px; 
+  }
+  .book-card {
+    border-radius: 8px;
+  }
+  .book-info {
+    padding: 8px 10px 10px;
+    gap: 4px;
+  }
+  .book-title {
+    font-size: 12px;
+  }
+  .book-author {
+    font-size: 11px;
+  }
+  .book-cat {
+    font-size: 10px;
+    padding: 1px 6px;
+  }
+  .book-avail {
+    font-size: 11px;
+  }
+  .auth-card { 
+    padding: 20px 16px; 
+    border-radius: var(--radius-sm);
+  }
+  .auth-card h2 {
+    font-size: 18px;
+  }
+  .hero { 
+    padding: 32px 12px 28px; 
+  }
+  .hero h1 {
+    font-size: 20px;
+  }
+  .hero-search {
+    padding: 4px 4px 4px 12px;
+  }
+  .hero-search input {
+    font-size: 13px;
+  }
+  .hero-search button {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+  .section { 
+    padding-top: 18px; 
+    padding-bottom: 22px; 
+  }
+  .section-header {
+    margin-bottom: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .section-title {
+    font-size: 15px;
+  }
+  .section-link {
+    font-size: 12px;
+  }
+  th, td { 
+    padding: 8px 10px; 
+    font-size: 11px;
+  }
+  .container {
+    padding: 0 12px;
+  }
+  .feature-card {
+    padding: 14px;
+  }
+  .borrow-card {
+    padding: 12px;
+  }
+  .cat-pills {
+    gap: 6px;
+    padding-bottom: 2px;
+  }
+  .cat-pill {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+  .footer {
+    padding: 32px 12px 20px;
+    margin-top: 40px;
+  }
+  .mono {
+    font-size: 12px;
+  }
 }
