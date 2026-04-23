@@ -241,36 +241,6 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* ── Footer ───────────────────────────────────────── */}
-      <footer className="footer">
-        <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 36, marginBottom: 36 }}>
-            <div>
-              <div className="footer-brand">📚 Phần mềm mượn trả sách</div>
-              <p style={{ fontSize: 13, lineHeight: 1.8, color: '#64748b' }}>
-                Hệ thống quản lý thư viện hiện đại — mượn trả, đọc E-Book và tra cứu kho sách tự động.
-              </p>
-            </div>
-            <div>
-              <div style={{ fontWeight: 700, color: '#cbd5e1', marginBottom: 14, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Tra cứu</div>
-              {[['Danh mục sách','/books'],['E-Book Online','/books?has_pdf=true'],['Sách mới','/books']].map(([l,h]) => (
-                <Link key={l} to={h} className="footer-link">→ {l}</Link>
-              ))}
-            </div>
-            {user && (
-              <div>
-                <div style={{ fontWeight: 700, color: '#cbd5e1', marginBottom: 14, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 }}>Tài khoản</div>
-                {[['Sách đang mượn','/my-borrows'],['Liên hệ thủ thư','/messages'],['Hồ sơ','/profile']].map(([l,h]) => (
-                  <Link key={l} to={h} className="footer-link">→ {l}</Link>
-                ))}
-              </div>
-            )}
-          </div>
-          <div style={{ borderTop: '1px solid #1e293b', paddingTop: 22, textAlign: 'center', fontSize: 13, color: '#475569' }}>
-            © 2025 Phần mềm mượn trả sách. Tất cả quyền được bảo lưu.
-          </div>
-        </div>
-      </footer>
     </>
   );
 }

@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { FiArrowLeft, FiBook, FiBookmark, FiInfo, FiLogIn, FiHash, FiMapPin, FiFileText, FiLock } from 'react-icons/fi';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import PdfViewer from '../components/PdfViewer';
 import { useAuth } from '../context/AuthContext';
 import api, { apiBaseUrl } from '../services/api';
@@ -559,8 +558,6 @@ export default function BookDetailPage() {
           onClose={closePdf}
         />
       )}
-
-      <Footer />
     </>
   );
 }

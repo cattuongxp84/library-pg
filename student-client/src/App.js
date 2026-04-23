@@ -12,6 +12,7 @@ import BooksPage from './pages/BooksPage';
 import BookDetailPage from './pages/BookDetailPage';
 import { LoginPage, RegisterPage } from './pages/AuthPages';
 import { MyBorrowsPage, MyReservationsPage, MessagesPage, ProfilePage } from './pages/OtherPages';
+import Footer from './components/Footer';
 
 const RequireAuth = ({ children }) => {
   const { user, loading } = useAuth();
@@ -42,6 +43,7 @@ function AppContent() {
         {/* Catch all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <Footer />
     </>
   );
 }
