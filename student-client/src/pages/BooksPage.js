@@ -13,13 +13,14 @@ const COVERS = [
 ];
 
 /* ─── Grid card ──────────────────────────────────────────────────── */
-function GridCard({ book, index, onClick }) {
+function GridCard({ book, index, onClick, renderBadge }) {
   const avail = book.available_copies || 0;
   return (
     <div className="book-card" onClick={onClick}>
       {/* Cover */}
       <div className="book-cover" style={{ background: COVERS[index % COVERS.length], padding: '18px 14px' }}>
         <div className="book-cover-spine" />
+        {renderBadge?.(book)}
         {book.pdf_url && (
           <div style={{ position: 'absolute', top: 9, right: 9, background: book.is_public_pdf ? 'rgba(22,163,74,0.92)' : 'rgba(234,179,8,0.92)', color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 6, display: 'flex', alignItems: 'center', gap: 3 }}>
             <FiFileText size={9} /> {book.is_public_pdf ? 'E-Book' : 'PDF'}
@@ -50,7 +51,7 @@ function GridCard({ book, index, onClick }) {
 }
 
 /* ─── List card ──────────────────────────────────────────────────── */
-function ListCard({ book, index, onClick }) {
+function ListCard({ book, index, onClick, renderBadge }) {
   const avail = book.available_copies || 0;
   return (
     <div onClick={onClick} style={{
@@ -67,6 +68,7 @@ function ListCard({ book, index, onClick }) {
         display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
       }}>
         <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 6, background: 'rgba(0,0,0,0.14)' }} />
+        {renderBadge?.(book)}
         <FiBookOpen size={28} color="rgba(255,255,255,0.88)" />
         {book.pdf_url && (
           <div style={{ position: 'absolute', bottom: 5, right: 5, background: book.is_public_pdf ? 'rgba(22,163,74,0.9)' : 'rgba(234,179,8,0.9)', width: 22, height: 22, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#fff' }}>📄</div>
@@ -151,6 +153,16 @@ export default function BooksPage() {
     if (page >= totalPages - 4) return totalPages - 8 + i;
     return page - 4 + i;
   });
+
+  const renderAccessBadge = (book) => {
+    if (book.access_level === 'lan') {
+      return <span style={{ position: 'absolute', top: 10, left: 10, background: 'rgba(59,130,246,0.95)', color: '#fff', fontSize: 10, fontWeight: 700, padding: '4px 8px', borderRadius: 999, textTransform: 'uppercase' }}>LAN</span>;
+    }
+    if (book.access_level === 'private') {
+      return <span style={{ position: 'absolute', top: 10, left: 10, background: 'rgba(234,179,8,0.95)', color: '#111827', fontSize: 10, fontWeight: 700, padding: '4px 8px', borderRadius: 999, textTransform: 'uppercase' }}>Đăng nhập</span>;
+    }
+    return null;
+  };
 
   return (
     <>
@@ -278,11 +290,11 @@ export default function BooksPage() {
           </div>
         ) : viewMode === 'grid' ? (
           <div className="books-grid">
-            {books.map((b, i) => <GridCard key={b.id} book={b} index={i} onClick={() => navigate(`/books/${b.id}`)} />)}
+            {books.map((b, i) => <GridCard key={b.id} book={b} index={i} onClick={() => navigate(`/books/${b.id}`)} renderBadge={renderAccessBadge} />)}
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {books.map((b, i) => <ListCard key={b.id} book={b} index={i} onClick={() => navigate(`/books/${b.id}`)} />)}
+            {books.map((b, i) => <ListCard key={b.id} book={b} index={i} onClick={() => navigate(`/books/${b.id}`)} renderBadge={renderAccessBadge} />)}
           </div>
         )}
 

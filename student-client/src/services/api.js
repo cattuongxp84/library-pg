@@ -3,8 +3,8 @@ import axios from 'axios';
 export const apiBaseUrl = process.env.REACT_APP_API_URL || '/api';
 const api = axios.create({ baseURL: apiBaseUrl });
 
-// List of public endpoints that don't require authentication
-const PUBLIC_ENDPOINTS = ['/books', '/categories', '/stats', '/authors', '/publishers'];
+// List of endpoints that are truly public and don't need authentication.
+const PUBLIC_ENDPOINTS = ['/categories', '/stats', '/authors', '/publishers'];
 
 const isPublicRequest = (url) => {
   if (!url) return false;
@@ -12,13 +12,10 @@ const isPublicRequest = (url) => {
 };
 
 api.interceptors.request.use(cfg => {
-  // Only attach token if NOT a public endpoint
-  if (!isPublicRequest(cfg.url)) {
-    const token = localStorage.getItem('student_token');
-    if (token) {
-      cfg.headers = cfg.headers || {};
-      cfg.headers.Authorization = `Bearer ${token}`;
-    }
+  const token = localStorage.getItem('student_token');
+  if (token && !isPublicRequest(cfg.url)) {
+    cfg.headers = cfg.headers || {};
+    cfg.headers.Authorization = `Bearer ${token}`;
   }
   return cfg;
 });

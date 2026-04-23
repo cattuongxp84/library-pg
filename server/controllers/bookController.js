@@ -34,7 +34,7 @@ const buildAccessFilter = (req) => {
 exports.getBooks = async (req, res) => {
   try {
     const { search, category, available, has_pdf, page = 1, limit = 12, sort = 'created_at', order = 'DESC' } = req.query;
-    const where = { is_active: true, ...buildAccessFilter(req) };
+    const where = { is_active: true };
 
     if (search) {
       where[Op.or] = [
@@ -71,28 +71,6 @@ exports.getBook = async (req, res) => {
     });
     if (!book || !book.is_active)
       return res.status(404).json({ success: false, message: 'Không tìm thấy sách' });
-
-    const isStaff = req.user && ['admin', 'librarian'].includes(req.user.role);
-    if (!isStaff) {
-      const level  = book.access_level || 'public';
-      const isLAN  = req.isLAN || false;
-      const isAuth = !!req.user;
-
-      if (level === 'lan' && !isLAN) {
-        return res.status(403).json({
-          success: false,
-          message: 'Tài liệu này chỉ xem được trên mạng nội bộ (LAN)',
-          code: 'LAN_ONLY',
-        });
-      }
-      if (level === 'private' && !isAuth) {
-        return res.status(401).json({
-          success: false,
-          message: 'Vui lòng đăng nhập để xem tài liệu này',
-          code: 'LOGIN_REQUIRED',
-        });
-      }
-    }
 
     res.json({ success: true, data: book });
   } catch (err) {
