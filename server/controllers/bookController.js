@@ -1,4 +1,5 @@
 const { Op } = require('sequelize');
+const fs = require('fs');
 const { Book, Category, Department } = require('../models');
 const { isLanIP } = require('../middleware/lanAccess');
 const { parseBooksFile, exportBooks } = require('../utils/excelExport');

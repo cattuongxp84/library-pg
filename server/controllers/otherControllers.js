@@ -1,5 +1,7 @@
+const fs = require('fs');
 const { Op, fn, col, literal, QueryTypes } = require('sequelize');
 const { Category, Department, User, Fine, Reservation, Book, Borrow, BookCopy } = require('../models');
+const { parseUsersFile, exportUsers } = require('../utils/excelExport');
 const sequelize = require('../config/db');
 
 // ─── Category ───────────────────────────────────────────────────────────────
@@ -133,6 +135,67 @@ exports.updateProfile = async (req, res) => {
     await req.user.update({ name, phone, address });
     res.json({ success: true, data: req.user });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+exports.exportUsers = async (req, res) => {
+  try {
+    const users = await User.findAll({ order: [['created_at', 'DESC']] });
+    const { filename, filepath } = await exportUsers(users);
+    res.download(filepath, filename, err => {
+      if (err) return res.status(500).json({ success: false, message: err.message });
+      try { fs.unlinkSync(filepath); } catch (e) { console.warn('Không xóa được file tạm:', e.message); }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.importUsers = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'Vui lòng tải lên file Excel' });
+    const rows = await parseUsersFile(req.file.path);
+    const results = [];
+
+    for (const row of rows) {
+      let [user, created] = await User.findOrCreate({
+        where: { email: row.email },
+        defaults: {
+          name: row.name,
+          email: row.email,
+          password: row.password,
+          student_id: row.student_id,
+          phone: row.phone,
+          address: row.address,
+          role: row.role,
+          is_active: row.is_active,
+        },
+      });
+
+      if (!created) {
+        const updateData = {
+          name: row.name,
+          student_id: row.student_id,
+          phone: row.phone,
+          address: row.address,
+          role: row.role,
+          is_active: row.is_active,
+        };
+        if (row.password) updateData.password = row.password;
+        await user.update(updateData);
+        results.push({ status: 'updated', id: user.id, email: user.email });
+      } else {
+        results.push({ status: 'created', id: user.id, email: user.email });
+      }
+    }
+
+    res.json({ success: true, message: 'Đã import người dùng', total: rows.length, results });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  } finally {
+    if (req.file && req.file.path) {
+      try { fs.unlinkSync(req.file.path); } catch (e) { console.warn('Không xóa được file tạm import:', e.message); }
+    }
+  }
 };
 
 // ─── Fine ────────────────────────────────────────────────────────────────────

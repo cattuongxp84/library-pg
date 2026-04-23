@@ -21,12 +21,14 @@ module.exports.messagesRouter = r9;
 
 // routes/books.js
 const r2 = require('express').Router();
-const { getBooks, getBook, createBook, updateBook, deleteBook, uploadBookPdf, deleteBookPdf, getBookPdf } = require('../controllers/bookController');
+const { getBooks, getBook, createBook, updateBook, deleteBook, uploadBookPdf, deleteBookPdf, getBookPdf, exportBooks, importBooks } = require('../controllers/bookController');
 const { protect: p2, authorize: a2 } = require('../middleware/auth');
-const { uploadPdf } = require('../middleware/upload');
+const { uploadPdf, uploadExcel } = require('../middleware/upload');
 r2.get('/', (req, res, next) => { req.optionalAuth = true; next(); }, p2, getBooks);
+r2.get('/export', p2, a2('admin','librarian'), exportBooks);
 r2.get('/:id', (req, res, next) => { req.optionalAuth = true; next(); }, p2, getBook);
 r2.get('/:id/pdf', (req, res, next) => { req.optionalAuth = true; next(); }, p2, getBookPdf);
+r2.post('/import', p2, a2('admin','librarian'), uploadExcel, importBooks);
 r2.post('/', p2, a2('admin','librarian'), createBook);
 r2.put('/:id', p2, a2('admin','librarian'), updateBook);
 r2.post('/:id/pdf', p2, a2('admin','librarian'), uploadPdf, uploadBookPdf);
@@ -70,9 +72,12 @@ module.exports.departmentsRouter = r4d;
 
 // routes/users.js
 const r5 = require('express').Router();
-const { getUsers, getUser, updateUser, updateProfile } = require('../controllers/otherControllers');
+const { getUsers, getUser, updateUser, updateProfile, exportUsers, importUsers } = require('../controllers/otherControllers');
 const { protect: p5, authorize: a5 } = require('../middleware/auth');
+const { uploadExcel } = require('../middleware/upload');
 r5.get('/', p5, a5('admin','librarian'), getUsers);
+r5.get('/export', p5, a5('admin','librarian'), exportUsers);
+r5.post('/import', p5, a5('admin','librarian'), uploadExcel, importUsers);
 r5.get('/:id', p5, a5('admin','librarian'), getUser);
 r5.put('/profile/me', p5, updateProfile);
 r5.put('/:id', p5, a5('admin'), updateUser);
