@@ -74,7 +74,6 @@ module.exports.departmentsRouter = r4d;
 const r5 = require('express').Router();
 const { getUsers, getUser, updateUser, updateProfile, exportUsers, importUsers } = require('../controllers/otherControllers');
 const { protect: p5, authorize: a5 } = require('../middleware/auth');
-const { uploadExcel } = require('../middleware/upload');
 r5.get('/', p5, a5('admin','librarian'), getUsers);
 r5.get('/export', p5, a5('admin','librarian'), exportUsers);
 r5.post('/import', p5, a5('admin','librarian'), uploadExcel, importUsers);
