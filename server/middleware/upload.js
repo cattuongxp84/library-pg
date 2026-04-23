@@ -1,16 +1,23 @@
 const multer = require('multer');
-const path   = require('path');
-const fs     = require('fs');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-// Đảm bảo thư mục tồn tại
-const pdfDir = path.join(__dirname, '../uploads/pdfs');
-if (!fs.existsSync(pdfDir)) fs.mkdirSync(pdfDir, { recursive: true });
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, pdfDir),
-  filename:    (req, file, cb) => {
-    const safe = file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-    cb(null, `${Date.now()}-${safe}`);
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'library-pdfs',
+    resource_type: 'raw',  // bắt buộc với PDF
+    format: 'pdf',
+    public_id: (req, file) => {
+      const safe = file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+      return `${Date.now()}-${safe}`;
+    },
   },
 });
 
