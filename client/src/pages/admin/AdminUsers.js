@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { FiSearch, FiEdit2, FiX, FiShield, FiCheck, FiMinus, FiUser, FiLock, FiDownload, FiUpload } from 'react-icons/fi';
+import { FiSearch, FiEdit2, FiX, FiShield, FiCheck, FiMinus, FiUser, FiLock, FiDownload, FiUpload, FiTrash2 } from 'react-icons/fi';
 import Layout from '../../components/common/Layout';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
@@ -137,6 +137,17 @@ export default function AdminUsers() {
     } finally { setSaving(false); }
   };
 
+  const handleDelete = async (u) => {
+    if (!window.confirm(`Xóa tài khoản "${u.name}" (${u.email})? Hành động này không thể hoàn tác.`)) return;
+    try {
+      await api.delete(`/users/${u.id}`);
+      toast.success('Đã xóa tài khoản');
+      fetchUsers();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Lỗi xóa tài khoản');
+    }
+  };
+
   // Export/Import
   const handleExportUsers = async () => {
     try {
@@ -271,10 +282,15 @@ export default function AdminUsers() {
                             {u.is_active ? 'Hoạt động' : 'Bị khóa'}
                           </span>
                         </td>
-                        <td>
+                        <td style={{ display: 'flex', gap: 6 }}>
                           <button className="btn btn-secondary btn-sm" onClick={() => openEdit(u)} title="Sửa & phân quyền">
                             <FiShield size={13} />
                           </button>
+                          {u.role !== 'admin' && (
+                            <button className="btn btn-secondary btn-sm" style={{ color: '#dc2626' }} onClick={() => handleDelete(u)} title="Xóa tài khoản">
+                              <FiTrash2 size={13} />
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );
