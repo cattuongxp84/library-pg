@@ -118,6 +118,7 @@ exports.getUsers = async (req, res) => {
     const { count, rows } = await User.findAndCountAll({
       where, order: [['created_at','DESC']],
       limit: parseInt(limit), offset: (parseInt(page)-1)*parseInt(limit),
+      include: [{ model: Department, as: 'department', attributes: ['id','name'] }],
     });
     res.json({ success: true, data: rows, total: count, page: parseInt(page), pages: Math.ceil(count/limit) });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
@@ -133,8 +134,9 @@ exports.updateUser = async (req, res) => {
   try {
     const u = await User.findByPk(req.params.id);
     if (!u) return res.status(404).json({ success: false, message: 'Không tìm thấy' });
-    const { name, phone, address, student_id, role, is_active, permissions } = req.body;
-    await u.update({ name, phone, address, student_id, role, is_active,
+    const { name, phone, address, student_id, role, is_active, permissions, date_of_birth, department_id } = req.body;
+    await u.update({ name, phone, address, student_id, role, is_active, date_of_birth: date_of_birth || null,
+      department_id: department_id || null,
       permissions: Array.isArray(permissions) ? permissions : [] });
     res.json({ success: true, data: u });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
@@ -149,7 +151,7 @@ exports.updateProfile = async (req, res) => {
 
 exports.exportUsers = async (req, res) => {
   try {
-    const users = await User.findAll({ order: [['created_at', 'DESC']] });
+    const users = await User.findAll({ order: [['created_at', 'DESC']], include: [{ model: Department, as: 'department', attributes: ['id','name'] }] });
     const { filename, filepath } = await exportUsers(users);
     res.download(filepath, filename, err => {
       if (err) return res.status(500).json({ success: false, message: err.message });
@@ -167,6 +169,14 @@ exports.importUsers = async (req, res) => {
     const results = [];
 
     for (const row of rows) {
+      // Resolve department_name -> department_id
+      let resolvedDeptId = row.department_id || null;
+      if (!resolvedDeptId && row.department_name) {
+        const dept = await Department.findOne({ where: { name: { [Op.iLike]: `%${row.department_name}%` } } });
+        if (dept) resolvedDeptId = dept.id;
+      }
+      row.department_id = resolvedDeptId;
+
       let [user, created] = await User.findOrCreate({
         where: { email: row.email },
         defaults: {
@@ -178,6 +188,8 @@ exports.importUsers = async (req, res) => {
           address: row.address,
           role: row.role,
           is_active: row.is_active,
+          date_of_birth: row.date_of_birth || null,
+          department_id: row.department_id || null,
         },
       });
 
@@ -189,6 +201,8 @@ exports.importUsers = async (req, res) => {
           address: row.address,
           role: row.role,
           is_active: row.is_active,
+          date_of_birth: row.date_of_birth || null,
+          department_id: row.department_id || null,
         };
         if (row.password) updateData.password = row.password;
         await user.update(updateData);
