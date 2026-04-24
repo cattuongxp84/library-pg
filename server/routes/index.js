@@ -1,3 +1,6 @@
+// routes/index.js - v3
+const { uploadPdf, uploadExcel } = require('../middleware/upload');
+
 // routes/auth.js
 const r1 = require('express').Router();
 const { register, login, getMe, changePassword } = require('../controllers/authController');
@@ -23,7 +26,6 @@ module.exports.messagesRouter = r9;
 const r2 = require('express').Router();
 const { getBooks, getBook, createBook, updateBook, deleteBook, uploadBookPdf, deleteBookPdf, getBookPdf, exportBooks, importBooks } = require('../controllers/bookController');
 const { protect: p2, authorize: a2 } = require('../middleware/auth');
-const { uploadPdf, uploadExcel } = require('../middleware/upload'); // khai báo uploadPdf và uploadExcel một lần duy nhất ở đây
 r2.get('/', (req, res, next) => { req.optionalAuth = true; next(); }, p2, getBooks);
 r2.get('/export', p2, a2('admin','librarian'), exportBooks);
 r2.get('/:id', (req, res, next) => { req.optionalAuth = true; next(); }, p2, getBook);
@@ -74,7 +76,6 @@ module.exports.departmentsRouter = r4d;
 const r5 = require('express').Router();
 const { getUsers, getUser, updateUser, updateProfile, exportUsers, importUsers } = require('../controllers/otherControllers');
 const { protect: p5, authorize: a5 } = require('../middleware/auth');
-// uploadExcel đã được khai báo ở trên, dùng lại không cần require lại
 r5.get('/', p5, a5('admin','librarian'), getUsers);
 r5.get('/export', p5, a5('admin','librarian'), exportUsers);
 r5.post('/import', p5, a5('admin','librarian'), uploadExcel, importUsers);
