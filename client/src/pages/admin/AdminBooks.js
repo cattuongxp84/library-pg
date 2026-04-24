@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEdit2, FiSearch, FiX, FiList, FiRefreshCw, FiTrash2, FiCopy, FiUpload, FiEye, FiEyeOff, FiFileText, FiDownload, FiImport } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiSearch, FiX, FiList, FiRefreshCw, FiTrash2, FiCopy, FiUpload, FiEye, FiEyeOff, FiFileText, FiDownload } from 'react-icons/fi';
 import Layout from '../../components/common/Layout';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
@@ -295,7 +295,7 @@ export default function AdminBooks() {
             <FiDownload /> Xuất Excel
           </button>
           <button className="btn btn-secondary" onClick={() => setImportModal(true)} title="Nhập danh sách sách từ file Excel">
-            <FiImport /> Nhập Excel
+            <FiUpload /> Nhập Excel
           </button>
           <button className="btn btn-primary" onClick={openCreate}><FiPlus /> Thêm sách</button>
         </div>
@@ -755,7 +755,7 @@ export default function AdminBooks() {
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setImportModal(false)}>
           <div className="modal" style={{ maxWidth: 480 }}>
             <div className="modal-header">
-              <h3><FiImport style={{ marginRight: 8 }} />Nhập danh sách sách</h3>
+              <h3><FiUpload style={{ marginRight: 8 }} />Nhập danh sách sách</h3>
               <button className="btn btn-secondary btn-icon" onClick={() => setImportModal(false)}><FiX /></button>
             </div>
             <div className="modal-body">
