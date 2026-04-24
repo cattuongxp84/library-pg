@@ -384,53 +384,55 @@ exports.parseUsersFile = async (filepath) => {
   const worksheet = workbook.getWorksheet(1);
   const data = [];
 
+  // Thứ tự cột xuất ra:
+  // col1=Name, col2=Email, col3=StudentID, col4=DateOfBirth, col5=Department
+  // col6=Phone, col7=Address, col8=Role, col9=Active, col10=GhiChu
+
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber === 1) return;
 
     const email = normalizeValue(row.getCell(2).value).toLowerCase();
     if (!email) return;
 
-    data.push({
-      name: normalizeValue(row.getCell(1).value) || 'Unknown',
-      email,
-      password: normalizeValue(row.getCell(3).value) || '123456',
-      student_id: normalizeValue(row.getCell(4).value),
-      date_of_birth: parseDateCell(row.getCell(4).value),   // col4
-      department_name: normalizeValue(row.getCell(5).value), // col5
-      phone: normalizeValue(row.getCell(6).value),           // col6
-      address: normalizeValue(row.getCell(7).value),         // col7
-      role: normalizeValue(row.getCell(8).value) || 'user',  // col8
-      is_active: normalizeValue(row.getCell(9).value).toLowerCase() !== 'false', // col9
-      // Password: ưu tiên cột 3, nếu không có thì dùng ngày sinh bỏ dấu /, nếu không còn thì 123456
-      password: (() => {
-        const manualPwd = ''; // Không có cột password riêng
-        if (manualPwd) return manualPwd;
-        // Lấy ngày sinh từ cell 5, format thành ddmmyyyy
-        const dobCell = row.getCell(4).value; // col4 = date of birth
-        if (dobCell) {
-          if (typeof dobCell === 'number') {
-            // Excel serial → Date
-            const d = new Date(Math.round((dobCell - 25569) * 86400 * 1000));
-            return String(d.getUTCDate()).padStart(2,'0') + String(d.getUTCMonth()+1).padStart(2,'0') + d.getUTCFullYear();
-          }
-          const s = dobCell.toString().trim();
-          // dd/mm/yyyy → ddmmyyyy
-          if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s.replace(/\//g, '');
-          // yyyy-mm-dd → ddmmyyyy
-          if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-            const [y,m,d] = s.split('-');
-            return d + m + y;
-          }
+    const dobCell = row.getCell(4).value;
+    const dobParsed = parseDateCell(dobCell);
+
+    // Mật khẩu = ngày sinh dạng ddmmyyyy, nếu không có thì 123456
+    let password = '123456';
+    if (dobCell) {
+      if (typeof dobCell === 'number') {
+        const d = new Date(Math.round((dobCell - 25569) * 86400 * 1000));
+        password = String(d.getUTCDate()).padStart(2,'0') + String(d.getUTCMonth()+1).padStart(2,'0') + d.getUTCFullYear();
+      } else if (dobCell instanceof Date) {
+        password = String(dobCell.getUTCDate()).padStart(2,'0') + String(dobCell.getUTCMonth()+1).padStart(2,'0') + dobCell.getUTCFullYear();
+      } else {
+        const s = dobCell.toString().trim();
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) password = s.replace(/\//g, '');
+        else if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+          const [y,m,d] = s.split('T')[0].split('-');
+          password = d + m + y;
         }
-        return '123456';
-      })(),
+      }
+    }
+
+    data.push({
+      name:            normalizeValue(row.getCell(1).value) || 'Unknown',
+      email,
+      student_id:      normalizeValue(row.getCell(3).value),  // col3
+      date_of_birth:   dobParsed,                              // col4 → yyyy-mm-dd
+      department_name: normalizeValue(row.getCell(5).value),   // col5
+      phone:           normalizeValue(row.getCell(6).value),   // col6
+      address:         normalizeValue(row.getCell(7).value),   // col7
+      role:            normalizeValue(row.getCell(8).value) || 'user', // col8
+      is_active:       normalizeValue(row.getCell(9).value).toLowerCase() !== 'false', // col9
+      password,
     });
   });
 
   return data;
 };
 
-// ─── Import kiểm kê từ Excel ────────────────────────────────────────────────
+
 exports.parseInventoryFile = async (filepath) => {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.readFile(filepath);
