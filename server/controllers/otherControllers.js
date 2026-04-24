@@ -149,6 +149,46 @@ exports.updateProfile = async (req, res) => {
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
 
+exports.deleteUser = async (req, res) => {
+  try {
+    const u = await User.findByPk(req.params.id);
+    if (!u) return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+    
+    // Kiểm tra xem người dùng có các mượn sách đang hoạt động không
+    const activeBorrows = await Borrow.count({ 
+      where: { user_id: u.id, status: { [Op.in]: ['borrowed', 'renewed', 'overdue'] } } 
+    });
+    
+    if (activeBorrows > 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Không thể xóa sinh viên này vì còn ${activeBorrows} sách đang mượn. Vui lòng thu hồi sách trước.` 
+      });
+    }
+    
+    // Xóa dữ liệu liên quan
+    // Xóa các đơn đặt trước
+    await Reservation.destroy({ where: { user_id: u.id } });
+    
+    // Xóa các tin nhắn
+    await require('../models').Message.destroy({ where: { [Op.or]: [{ sender_id: u.id }, { receiver_id: u.id }] } });
+    
+    // Xóa lịch sử mượn (soft delete hoặc hard delete tùy policy)
+    await Borrow.update({ is_deleted: true }, { where: { user_id: u.id } });
+    
+    // Xóa phiếu phạt chưa thanh toán (hoặc cập nhật trạng thái)
+    await Fine.update({ is_deleted: true }, { where: { user_id: u.id } });
+    
+    // Xóa người dùng
+    await u.destroy();
+    
+    res.json({ success: true, message: `Đã xóa sinh viên ${u.name}` });
+  } catch (err) { 
+    console.error('Delete user error:', err);
+    res.status(500).json({ success: false, message: err.message }); 
+  }
+};
+
 exports.exportUsers = async (req, res) => {
   try {
     const users = await User.findAll({ order: [['created_at', 'DESC']], include: [{ model: Department, as: 'department', attributes: ['id','name'] }] });

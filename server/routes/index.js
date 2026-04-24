@@ -74,7 +74,7 @@ module.exports.departmentsRouter = r4d;
 
 // routes/users.js
 const r5 = require('express').Router();
-const { getUsers, getUser, updateUser, updateProfile, exportUsers, importUsers } = require('../controllers/otherControllers');
+const { getUsers, getUser, updateUser, updateProfile, exportUsers, importUsers, deleteUser } = require('../controllers/otherControllers');
 const { protect: p5, authorize: a5 } = require('../middleware/auth');
 r5.get('/', p5, a5('admin','librarian'), getUsers);
 r5.get('/export', p5, a5('admin','librarian'), exportUsers);
@@ -82,6 +82,7 @@ r5.post('/import', p5, a5('admin','librarian'), uploadExcel, importUsers);
 r5.get('/:id', p5, a5('admin','librarian'), getUser);
 r5.put('/profile/me', p5, updateProfile);
 r5.put('/:id', p5, a5('admin'), updateUser);
+r5.delete('/:id', p5, a5('admin'), deleteUser);
 module.exports.usersRouter = r5;
 
 // routes/fines.js

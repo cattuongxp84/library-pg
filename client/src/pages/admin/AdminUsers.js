@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { FiSearch, FiEdit2, FiX, FiShield, FiCheck, FiMinus, FiUser, FiLock, FiDownload, FiUpload } from 'react-icons/fi';
+import { FiSearch, FiEdit2, FiX, FiShield, FiCheck, FiMinus, FiUser, FiLock, FiDownload, FiUpload, FiTrash2 } from 'react-icons/fi';
 import Layout from '../../components/common/Layout';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
@@ -135,6 +135,18 @@ export default function AdminUsers() {
     } catch (err) {
       toast.error(err.response?.data?.message || 'Lỗi cập nhật');
     } finally { setSaving(false); }
+  };
+
+  const handleDelete = async (userId, userName) => {
+    if (!window.confirm(`Bạn chắc chắn muốn xóa sinh viên "${userName}" khỏi hệ thống?\n\nLưu ý: Không thể xóa sinh viên nếu còn sách đang mượn!`)) return;
+    
+    try {
+      await api.delete(`/users/${userId}`);
+      toast.success(`Đã xóa sinh viên ${userName}`);
+      fetchUsers();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Lỗi xóa sinh viên');
+    }
   };
 
   // Export/Import
@@ -274,6 +286,9 @@ export default function AdminUsers() {
                         <td>
                           <button className="btn btn-secondary btn-sm" onClick={() => openEdit(u)} title="Sửa & phân quyền">
                             <FiShield size={13} />
+                          </button>
+                          <button className="btn btn-danger btn-sm" onClick={() => handleDelete(u.id, u.name)} title="Xóa sinh viên" style={{ marginLeft: 4 }}>
+                            <FiTrash2 size={13} />
                           </button>
                         </td>
                       </tr>
