@@ -23,7 +23,7 @@ module.exports.messagesRouter = r9;
 const r2 = require('express').Router();
 const { getBooks, getBook, createBook, updateBook, deleteBook, uploadBookPdf, deleteBookPdf, getBookPdf, exportBooks, importBooks } = require('../controllers/bookController');
 const { protect: p2, authorize: a2 } = require('../middleware/auth');
-const { uploadPdf, uploadExcel } = require('../middleware/upload');
+const { uploadPdf, uploadExcel } = require('../middleware/upload'); // khai báo uploadPdf và uploadExcel một lần duy nhất ở đây
 r2.get('/', (req, res, next) => { req.optionalAuth = true; next(); }, p2, getBooks);
 r2.get('/export', p2, a2('admin','librarian'), exportBooks);
 r2.get('/:id', (req, res, next) => { req.optionalAuth = true; next(); }, p2, getBook);
@@ -74,6 +74,7 @@ module.exports.departmentsRouter = r4d;
 const r5 = require('express').Router();
 const { getUsers, getUser, updateUser, updateProfile, exportUsers, importUsers } = require('../controllers/otherControllers');
 const { protect: p5, authorize: a5 } = require('../middleware/auth');
+// uploadExcel đã được khai báo ở trên, dùng lại không cần require lại
 r5.get('/', p5, a5('admin','librarian'), getUsers);
 r5.get('/export', p5, a5('admin','librarian'), exportUsers);
 r5.post('/import', p5, a5('admin','librarian'), uploadExcel, importUsers);
@@ -108,29 +109,24 @@ module.exports.reservationsRouter = r7;
 const r8 = require('express').Router();
 const { getDashboardStats, getBorrowStats, getDailyReport, exportDailyReport, getInventoryStats, exportComprehensiveReport, checkInventory } = require('../controllers/otherControllers');
 const { protect: p8, authorize: a8 } = require('../middleware/auth');
-r8.get('/dashboard',     p8, a8('admin','librarian'), getDashboardStats);
-r8.get('/summary',       (req, res, next) => { req.optionalAuth = true; next(); }, p8, getDashboardStats);
-r8.get('/borrows',       p8, a8('admin','librarian'), getBorrowStats);
-r8.get('/daily',         p8, a8('admin','librarian'), getDailyReport);
-r8.get('/export/daily',  p8, a8('admin','librarian'), exportDailyReport);
+r8.get('/dashboard',            p8, a8('admin','librarian'), getDashboardStats);
+r8.get('/summary',              (req, res, next) => { req.optionalAuth = true; next(); }, p8, getDashboardStats);
+r8.get('/borrows',              p8, a8('admin','librarian'), getBorrowStats);
+r8.get('/daily',                p8, a8('admin','librarian'), getDailyReport);
+r8.get('/export/daily',         p8, a8('admin','librarian'), exportDailyReport);
 r8.get('/export/comprehensive', p8, a8('admin','librarian'), exportComprehensiveReport);
-r8.get('/inventory',     p8, a8('admin','librarian'), getInventoryStats);
-r8.post('/check-inventory', p8, a8('admin','librarian'), checkInventory);
+r8.get('/inventory',            p8, a8('admin','librarian'), getInventoryStats);
+r8.post('/check-inventory',     p8, a8('admin','librarian'), checkInventory);
 module.exports.statsRouter = r8;
-module.exports.messagesRouter = r9;
 
+// routes/copies.js
 const r10 = require('express').Router();
-const {
-  getCopiesByBook, findByCopyCode, previewNextCode,
-  createCopies, updateCopy, deleteCopy,
-} = require('../controllers/copyController');
+const { getCopiesByBook, findByCopyCode, previewNextCode, createCopies, updateCopy, deleteCopy } = require('../controllers/copyController');
 const { protect: p10, authorize: a10 } = require('../middleware/auth');
-
-r10.get('/preview-code',       p10, a10('admin', 'librarian'), previewNextCode);
-r10.get('/find/:code',         p10, a10('admin', 'librarian'), findByCopyCode);
-r10.get('/book/:bookId',       getCopiesByBook);                                    // public — sinh viên xem ĐKCB
-r10.post('/',                  p10, a10('admin', 'librarian'), createCopies);
-r10.put('/:id',                p10, a10('admin', 'librarian'), updateCopy);
-r10.delete('/:id',             p10, a10('admin'),              deleteCopy);
-
+r10.get('/preview-code', p10, a10('admin', 'librarian'), previewNextCode);
+r10.get('/find/:code',   p10, a10('admin', 'librarian'), findByCopyCode);
+r10.get('/book/:bookId', getCopiesByBook);
+r10.post('/',            p10, a10('admin', 'librarian'), createCopies);
+r10.put('/:id',          p10, a10('admin', 'librarian'), updateCopy);
+r10.delete('/:id',       p10, a10('admin'),              deleteCopy);
 module.exports.copiesRouter = r10;
