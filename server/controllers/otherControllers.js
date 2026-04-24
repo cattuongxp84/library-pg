@@ -166,9 +166,15 @@ exports.importUsers = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'Vui lòng tải lên file Excel' });
     const rows = await parseUsersFile(req.file.path);
+    if (!Array.isArray(rows) || rows.length === 0) return res.status(400).json({ success: false, message: 'File Excel không có dữ liệu hoặc định dạng sai' });
     const results = [];
 
     for (const row of rows) {
+      if (!row.email) {
+        results.push({ status: 'skipped', reason: 'Missing email' });
+        continue;
+      }
+
       // Resolve department_name -> department_id
       let resolvedDeptId = row.department_id || null;
       if (!resolvedDeptId && row.department_name) {
@@ -180,14 +186,14 @@ exports.importUsers = async (req, res) => {
       let [user, created] = await User.findOrCreate({
         where: { email: row.email },
         defaults: {
-          name: row.name,
+          name: row.name || 'Unknown',
           email: row.email,
-          password: row.password,
-          student_id: row.student_id,
-          phone: row.phone,
-          address: row.address,
-          role: row.role,
-          is_active: row.is_active,
+          password: row.password || 'defaultPassword123',
+          student_id: row.student_id || null,
+          phone: row.phone || null,
+          address: row.address || null,
+          role: row.role || 'student',
+          is_active: row.is_active !== undefined ? row.is_active : true,
           date_of_birth: row.date_of_birth || null,
           department_id: row.department_id || null,
         },
@@ -195,14 +201,14 @@ exports.importUsers = async (req, res) => {
 
       if (!created) {
         const updateData = {
-          name: row.name,
-          student_id: row.student_id,
-          phone: row.phone,
-          address: row.address,
-          role: row.role,
-          is_active: row.is_active,
-          date_of_birth: row.date_of_birth || null,
-          department_id: row.department_id || null,
+          name: row.name || user.name,
+          student_id: row.student_id || user.student_id,
+          phone: row.phone || user.phone,
+          address: row.address || user.address,
+          role: row.role || user.role,
+          is_active: row.is_active !== undefined ? row.is_active : user.is_active,
+          date_of_birth: row.date_of_birth || user.date_of_birth,
+          department_id: row.department_id || user.department_id,
         };
         if (row.password) updateData.password = row.password;
         await user.update(updateData);
@@ -214,7 +220,8 @@ exports.importUsers = async (req, res) => {
 
     res.json({ success: true, message: 'Đã import người dùng', total: rows.length, results });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('Import users error:', err);
+    res.status(500).json({ success: false, message: err.message || 'Lỗi khi import người dùng' });
   } finally {
     if (req.file && req.file.path) {
       try { fs.unlinkSync(req.file.path); } catch (e) { console.warn('Không xóa được file tạm import:', e.message); }

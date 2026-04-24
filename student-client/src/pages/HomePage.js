@@ -80,17 +80,17 @@ export default function HomePage() {
 
   useEffect(() => {
     Promise.all([
-      api.get('/books', { params: { limit: 12, sort: 'borrow_count', order: 'DESC' } }),
-      api.get('/books', { params: { limit: 12, sort: 'created_at', order: 'DESC' } }),
-      api.get('/books', { params: { limit: 8, has_pdf: 'true' } }),
-      api.get('/categories'),
+      api.get('/books', { params: { limit: 12, sort: 'borrow_count', order: 'DESC' } }).catch(() => ({ data: { data: [] } })),
+      api.get('/books', { params: { limit: 12, sort: 'created_at', order: 'DESC' } }).catch(() => ({ data: { data: [] } })),
+      api.get('/books', { params: { limit: 8, has_pdf: 'true' } }).catch(() => ({ data: { data: [] } })),
+      api.get('/categories').catch(() => ({ data: { data: [] } })),
       api.get('/stats/summary').catch(() => ({ data: { data: {} } })),
     ]).then(([pop, newB, eb, cats, st]) => {
-      setPopularBooks(pop.data.data || []);
-      setNewBooks(newB.data.data || []);
-      setEBooks(eb.data.data || []);
-      setCategories(cats.data.data || []);
-      const s = st.data.data || {};
+      setPopularBooks(pop.data?.data || []);
+      setNewBooks(newB.data?.data || []);
+      setEBooks(eb.data?.data || []);
+      setCategories(cats.data?.data || []);
+      const s = st.data?.data || {};
       setStats({ 
         books: s.totalBooks || 0, 
         users: s.totalUsers || 0, 
@@ -98,6 +98,8 @@ export default function HomePage() {
         copies: s.totalCopies || 0,
         ebooks: s.totalEBooks || 0
       });
+    }).catch(err => {
+      console.error('Error loading page:', err);
     }).finally(() => setLoading(false));
   }, []);
 
