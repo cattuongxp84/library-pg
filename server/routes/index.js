@@ -1,3 +1,6 @@
+// routes/index.js - v3
+const { uploadPdf, uploadExcel } = require('../middleware/upload');
+
 // routes/auth.js
 const r1 = require('express').Router();
 const { register, login, getMe, changePassword } = require('../controllers/authController');
@@ -19,12 +22,10 @@ r9.put('/:id/reply', p9, a9('admin','librarian'), replyMessage);
 r9.put('/:id/read', p9, a9('admin','librarian'), markAsRead);
 module.exports.messagesRouter = r9;
 
-
 // routes/books.js
 const r2 = require('express').Router();
 const { getBooks, getBook, createBook, updateBook, deleteBook, uploadBookPdf, deleteBookPdf, getBookPdf, exportBooks, importBooks } = require('../controllers/bookController');
 const { protect: p2, authorize: a2 } = require('../middleware/auth');
-const { uploadPdf, uploadExcel } = require('../middleware/upload');
 r2.get('/', (req, res, next) => { req.optionalAuth = true; next(); }, p2, getBooks);
 r2.get('/export', p2, a2('admin','librarian'), exportBooks);
 r2.get('/:id', (req, res, next) => { req.optionalAuth = true; next(); }, p2, getBook);
