@@ -243,7 +243,7 @@ export default function AdminUsers() {
                         </td>
                         <td style={{ fontSize: 13 }}>{u.student_id || '—'}</td>
                         <td style={{ fontSize: 12, color: '#64748b' }}>{u.department?.name || '—'}</td>
-                        <td style={{ fontSize: 12, color: '#64748b' }}>{u.date_of_birth ? new Date(u.date_of_birth).toLocaleDateString('vi-VN') : '—'}</td>
+                        <td style={{ fontSize: 12, color: '#64748b' }}>{u.date_of_birth ? u.date_of_birth.split('T')[0].split('-').reverse().join('/') : '—'}</td>
                         <td>
                           <span style={{ background: ri.bg, color: ri.color, border: `1px solid ${ri.color}30`,
                             borderRadius: 20, padding: '3px 10px', fontSize: 12, fontWeight: 600 }}>
