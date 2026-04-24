@@ -300,16 +300,16 @@ exports.exportUsers = async (users) => {
   const worksheet = workbook.addWorksheet('Users');
 
   worksheet.columns = [
-    { header: 'Name', key: 'name', width: 24 },
-    { header: 'Email', key: 'email', width: 28 },
-    { header: 'Student ID', key: 'student_id', width: 18 },
-    { header: 'Date of Birth (dd/mm/yyyy)', key: 'date_of_birth', width: 22 },
-    { header: '(Ghi chú: Mật khẩu = ngày sinh ddmmyyyy, vd: 23091984)', key: 'pwd_note', width: 45 },
-    { header: 'Department', key: 'department', width: 30 },
-    { header: 'Phone', key: 'phone', width: 16 },
-    { header: 'Address', key: 'address', width: 40 },
-    { header: 'Role', key: 'role', width: 12 },
-    { header: 'Active', key: 'is_active', width: 10 },
+    { header: 'Name', key: 'name', width: 24 },          // col 1
+    { header: 'Email', key: 'email', width: 28 },         // col 2
+    { header: 'Student ID', key: 'student_id', width: 18 }, // col 3
+    { header: 'Date of Birth (dd/mm/yyyy)', key: 'date_of_birth', width: 22 }, // col 4
+    { header: 'Department', key: 'department', width: 30 }, // col 5
+    { header: 'Phone', key: 'phone', width: 16 },         // col 6
+    { header: 'Address', key: 'address', width: 40 },     // col 7
+    { header: 'Role', key: 'role', width: 12 },           // col 8
+    { header: 'Active', key: 'is_active', width: 10 },    // col 9
+    { header: 'Ghi chu: Mat khau = ngay sinh ddmmyyyy (vd: 23091984)', key: 'pwd_note', width: 45 }, // col 10
   ];
 
   worksheet.getRow(1).style = headerStyle;
@@ -321,8 +321,8 @@ exports.exportUsers = async (users) => {
       email: user.email,
       student_id: user.student_id || '',
       date_of_birth: formatDate(user.date_of_birth),
-      pwd_note: '',
       department: user.department?.name || '',
+      pwd_note: '',
       phone: user.phone || '',
       address: user.address || '',
       role: user.role || 'user',
@@ -395,18 +395,18 @@ exports.parseUsersFile = async (filepath) => {
       email,
       password: normalizeValue(row.getCell(3).value) || '123456',
       student_id: normalizeValue(row.getCell(4).value),
-      date_of_birth: parseDateCell(row.getCell(5).value),
-      department_name: normalizeValue(row.getCell(6).value),
-      phone: normalizeValue(row.getCell(7).value),
-      address: normalizeValue(row.getCell(8).value),
-      role: normalizeValue(row.getCell(9).value) || 'user',
-      is_active: normalizeValue(row.getCell(10).value).toLowerCase() !== 'false',
+      date_of_birth: parseDateCell(row.getCell(4).value),   // col4
+      department_name: normalizeValue(row.getCell(5).value), // col5
+      phone: normalizeValue(row.getCell(6).value),           // col6
+      address: normalizeValue(row.getCell(7).value),         // col7
+      role: normalizeValue(row.getCell(8).value) || 'user',  // col8
+      is_active: normalizeValue(row.getCell(9).value).toLowerCase() !== 'false', // col9
       // Password: ưu tiên cột 3, nếu không có thì dùng ngày sinh bỏ dấu /, nếu không còn thì 123456
       password: (() => {
-        const manualPwd = normalizeValue(row.getCell(3).value);
+        const manualPwd = ''; // Không có cột password riêng
         if (manualPwd) return manualPwd;
         // Lấy ngày sinh từ cell 5, format thành ddmmyyyy
-        const dobCell = row.getCell(5).value;
+        const dobCell = row.getCell(4).value; // col4 = date of birth
         if (dobCell) {
           if (typeof dobCell === 'number') {
             // Excel serial → Date
