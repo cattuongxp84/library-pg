@@ -24,6 +24,45 @@ const centerStyle = {
   border: { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } },
 };
 
+// ─── Helper format ngày thành string dd/mm/yyyy (tránh Excel auto-convert) ───
+const formatDate = (val) => {
+  if (!val) return '';
+  // Nếu là số nguyên (Excel serial date), convert sang Date
+  if (typeof val === 'number') {
+    const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+    const day   = String(d.getUTCDate()).padStart(2, '0');
+    const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const year  = d.getUTCFullYear();
+    return `${day}/${month}/${year}`;
+  }
+  // Nếu là string dạng YYYY-MM-DD
+  const s = val.toString().trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const [y, m, d] = s.split('T')[0].split('-');
+    return `${d}/${m}/${y}`;
+  }
+  return s;
+};
+
+// Parse ngày từ Excel: chấp nhận dd/mm/yyyy, yyyy-mm-dd, hoặc Excel serial
+const parseDateCell = (cellValue) => {
+  if (!cellValue) return null;
+  // Excel serial number
+  if (typeof cellValue === 'number') {
+    const d = new Date(Math.round((cellValue - 25569) * 86400 * 1000));
+    return d.toISOString().split('T')[0]; // yyyy-mm-dd cho DB
+  }
+  const s = cellValue.toString().trim();
+  // dd/mm/yyyy
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
+    const [d, m, y] = s.split('/');
+    return `${y}-${m}-${d}`;
+  }
+  // yyyy-mm-dd
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  return null;
+};
+
 // ─── Báo cáo sách mất ────────────────────────────────────────────────────────
 exports.exportLostBooks = async (lostBooks) => {
   const workbook = new ExcelJS.Workbook();
@@ -263,9 +302,9 @@ exports.exportUsers = async (users) => {
   worksheet.columns = [
     { header: 'Name', key: 'name', width: 24 },
     { header: 'Email', key: 'email', width: 28 },
-    { header: 'Password', key: 'password', width: 18 },
     { header: 'Student ID', key: 'student_id', width: 18 },
-    { header: 'Date of Birth', key: 'date_of_birth', width: 16 },
+    { header: 'Date of Birth (dd/mm/yyyy)', key: 'date_of_birth', width: 22 },
+    { header: '(Ghi chú: Mật khẩu = ngày sinh ddmmyyyy, vd: 23091984)', key: 'pwd_note', width: 45 },
     { header: 'Department', key: 'department', width: 30 },
     { header: 'Phone', key: 'phone', width: 16 },
     { header: 'Address', key: 'address', width: 40 },
@@ -280,9 +319,9 @@ exports.exportUsers = async (users) => {
     worksheet.addRow({
       name: user.name,
       email: user.email,
-      password: '',
       student_id: user.student_id || '',
-      date_of_birth: user.date_of_birth || '',
+      date_of_birth: formatDate(user.date_of_birth),
+      pwd_note: '',
       department: user.department?.name || '',
       phone: user.phone || '',
       address: user.address || '',
@@ -356,12 +395,35 @@ exports.parseUsersFile = async (filepath) => {
       email,
       password: normalizeValue(row.getCell(3).value) || '123456',
       student_id: normalizeValue(row.getCell(4).value),
-      date_of_birth: normalizeValue(row.getCell(5).value) || null,
+      date_of_birth: parseDateCell(row.getCell(5).value),
       department_name: normalizeValue(row.getCell(6).value),
       phone: normalizeValue(row.getCell(7).value),
       address: normalizeValue(row.getCell(8).value),
       role: normalizeValue(row.getCell(9).value) || 'user',
       is_active: normalizeValue(row.getCell(10).value).toLowerCase() !== 'false',
+      // Password: ưu tiên cột 3, nếu không có thì dùng ngày sinh bỏ dấu /, nếu không còn thì 123456
+      password: (() => {
+        const manualPwd = normalizeValue(row.getCell(3).value);
+        if (manualPwd) return manualPwd;
+        // Lấy ngày sinh từ cell 5, format thành ddmmyyyy
+        const dobCell = row.getCell(5).value;
+        if (dobCell) {
+          if (typeof dobCell === 'number') {
+            // Excel serial → Date
+            const d = new Date(Math.round((dobCell - 25569) * 86400 * 1000));
+            return String(d.getUTCDate()).padStart(2,'0') + String(d.getUTCMonth()+1).padStart(2,'0') + d.getUTCFullYear();
+          }
+          const s = dobCell.toString().trim();
+          // dd/mm/yyyy → ddmmyyyy
+          if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s.replace(/\//g, '');
+          // yyyy-mm-dd → ddmmyyyy
+          if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+            const [y,m,d] = s.split('-');
+            return d + m + y;
+          }
+        }
+        return '123456';
+      })(),
     });
   });
 
