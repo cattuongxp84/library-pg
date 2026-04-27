@@ -17,8 +17,6 @@ const User = sequelize.define('User', {
   borrow_count: { type: DataTypes.INTEGER, defaultValue: 0 },
   total_fines:  { type: DataTypes.INTEGER, defaultValue: 0 },
   unpaid_fines: { type: DataTypes.INTEGER, defaultValue: 0 },
-  date_of_birth: { type: DataTypes.DATEONLY },
-  department_id: { type: DataTypes.INTEGER, references: { model: 'departments', key: 'id' } },
   permissions:  { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
 }, { tableName: 'users' });
 
@@ -203,7 +201,11 @@ InventoryDetail.belongsTo(Inventory, { foreignKey: 'inventory_id', as: 'inventor
 BookCopy.hasMany(InventoryDetail, { foreignKey: 'copy_id', as: 'inventoryDetails' });
 InventoryDetail.belongsTo(BookCopy, { foreignKey: 'copy_id', as: 'copy' });
 
+<<<<<<< HEAD
 Department.hasMany(User, { foreignKey: 'department_id', as: 'students' });
 User.belongsTo(Department, { foreignKey: 'department_id', as: 'department' });
 
 module.exports = { User, Category, Department, Book, Borrow, Fine, Reservation, Message, BookCopy, Inventory, InventoryDetail };
+=======
+module.exports = { User, Category, Department, Book, Borrow, Fine, Reservation, Message, BookCopy, Inventory, InventoryDetail };
+>>>>>>> parent of 1bcd2b8 (s)

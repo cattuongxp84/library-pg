@@ -54,7 +54,6 @@ export default function AdminUsers() {
   const { user: me } = useAuth();
   const [users, setUsers]           = useState([]);
   const [loading, setLoading]       = useState(true);
-  const [departments, setDepartments] = useState([]);
   const [search, setSearch]         = useState('');
   const [filterRole, setFilterRole] = useState('');
   const [page, setPage]             = useState(1);
@@ -67,7 +66,6 @@ export default function AdminUsers() {
   const [isImporting, setIsImporting]     = useState(false);
   const [form, setForm] = useState({
     name: '', phone: '', student_id: '', role: 'user', is_active: true, permissions: [],
-    date_of_birth: '', department_id: '',
   });
 
   const fetchUsers = useCallback(async () => {
@@ -83,15 +81,13 @@ export default function AdminUsers() {
   }, [page, search, filterRole]);
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
-  useEffect(() => { api.get('/departments').then(r => setDepartments(r.data.data || [])); }, []);
 
   const openEdit = (u) => {
     setEditing(u.id);
     // Nếu user chưa có permissions tùy chỉnh → lấy mặc định theo role
     const perms = u.permissions?.length > 0 ? u.permissions : DEFAULT_PERMS[u.role] || [];
     setForm({ name: u.name, phone: u.phone || '', student_id: u.student_id || '',
-      role: u.role, is_active: u.is_active, permissions: perms,
-      date_of_birth: u.date_of_birth || '', department_id: u.department_id || '' });
+      role: u.role, is_active: u.is_active, permissions: perms });
     setModal(true);
   };
 
@@ -228,7 +224,7 @@ export default function AdminUsers() {
               <table>
                 <thead>
                   <tr>
-                    <th>Người dùng</th><th>Mã SV</th><th>Khoa</th><th>Ngày sinh</th><th>Vai trò</th>
+                    <th>Người dùng</th><th>Mã SV</th><th>Vai trò</th>
                     <th>Quyền đang có</th><th>Lượt mượn</th><th>Nợ phạt</th><th>Trạng thái</th><th></th>
                   </tr>
                 </thead>
@@ -254,8 +250,6 @@ export default function AdminUsers() {
                           </div>
                         </td>
                         <td style={{ fontSize: 13 }}>{u.student_id || '—'}</td>
-                        <td style={{ fontSize: 12, color: '#64748b' }}>{u.department?.name || '—'}</td>
-                        <td style={{ fontSize: 12, color: '#64748b' }}>{u.date_of_birth ? new Date(u.date_of_birth).toLocaleDateString('vi-VN') : '—'}</td>
                         <td>
                           <span style={{ background: ri.bg, color: ri.color, border: `1px solid ${ri.color}30`,
                             borderRadius: 20, padding: '3px 10px', fontSize: 12, fontWeight: 600 }}>
@@ -339,19 +333,6 @@ export default function AdminUsers() {
                     <label className="form-label">SĐT</label>
                     <input className="form-control" value={form.phone}
                       onChange={e => setForm({ ...form, phone: e.target.value })} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">📅 Ngày sinh</label>
-                    <input className="form-control" type="date" value={form.date_of_birth}
-                      onChange={e => setForm({ ...form, date_of_birth: e.target.value })} />
-                  </div>
-                  <div className="form-group" style={{ gridColumn: '1/-1' }}>
-                    <label className="form-label">🏫 Khoa / Viện</label>
-                    <select className="form-control" value={form.department_id}
-                      onChange={e => setForm({ ...form, department_id: e.target.value })}>
-                      <option value="">-- Chọn khoa --</option>
-                      {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                    </select>
                   </div>
                   <div className="form-group">
                     <label className="form-label">Vai trò</label>
