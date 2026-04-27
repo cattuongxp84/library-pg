@@ -9,3 +9,4 @@ client/src/pages/admin/AdminUsers.js
 library-pg.rar
 server/controllers/otherControllers.js
 server/utils/excelExport.js
+*.rar
