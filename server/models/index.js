@@ -28,6 +28,8 @@ User.prototype.matchPassword = async function (p) { return bcrypt.compare(p, thi
 User.prototype.toJSON = function () {
   const v = { ...this.get() };
   delete v.password;
+  delete v.reset_token;
+  delete v.reset_token_expires;
   return v;
 };
 

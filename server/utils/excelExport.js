@@ -27,6 +27,13 @@ const centerStyle = {
 // ─── Helper format ngày thành string dd/mm/yyyy (tránh Excel auto-convert) ───
 const formatDate = (val) => {
   if (!val) return '';
+  // Nếu là Date object (từ Sequelize)
+  if (val instanceof Date) {
+    const day   = String(val.getDate()).padStart(2, '0');
+    const month = String(val.getMonth() + 1).padStart(2, '0');
+    const year  = val.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
   // Nếu là số nguyên (Excel serial date), convert sang Date
   if (typeof val === 'number') {
     const d = new Date(Math.round((val - 25569) * 86400 * 1000));
