@@ -540,6 +540,17 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   [style*="grid-template-columns: 1fr 1fr"] {
     grid-template-columns: 1fr !important;
   }
+  
+  /* Mobile sidebar - ensure clickability */
+  .sidebar {
+    pointer-events: auto;
+  }
+  .sidebar-overlay {
+    pointer-events: auto;
+  }
+  .sidebar-nav a {
+    pointer-events: auto;
+  }
 }
 
 @media (max-width: 480px) {
@@ -625,88 +636,3 @@ textarea.form-control { resize: vertical; min-height: 80px; }
     min-width: 800px;
   }
 }
-
-/* Mobile sidebar - ensure clickability */
-@media (max-width: 768px) {
-  .sidebar {
-    pointer-events: auto;
-  }
-  .sidebar-overlay {
-    pointer-events: auto;
-  }
-  .sidebar-nav a {
-    pointer-events: auto;
-  }
-}
-  th, td { 
-    padding: 6px 8px; 
-  }
-  th { 
-    font-size: 10px; 
-  }
-  
-  /* Buttons */
-  .btn { 
-    padding: 6px 12px; 
-    font-size: 13px;
-  }
-  .btn-sm { 
-    padding: 4px 8px; 
-    font-size: 12px;
-  }
-  .btn-icon { 
-    width: 30px; 
-    height: 30px; 
-  }
-  
-  /* Forms */
-  .filters-row { 
-    gap: 6px;
-    flex-direction: column;
-  }
-  .search-input { 
-    width: 100%;
-  }
-  .form-group { 
-    margin-bottom: 12px; 
-  }
-  .form-label { 
-    font-size: 13px; 
-    margin-bottom: 4px;
-  }
-  .form-control { 
-    padding: 8px 10px; 
-    font-size: 13px;
-  }
-  
-  /* Badges */
-  .badge { 
-    font-size: 11px; 
-    padding: 2px 8px;
-  }
-  
-  /* Modal */
-  .modal { 
-    border-radius: 12px; 
-    max-height: 95vh;
-  }
-  .modal-header { 
-    padding: 16px; 
-  }
-  .modal-body { 
-    padding: 16px; 
-  }
-  .modal-footer { 
-    padding: 12px 16px; 
-    gap: 8px;
-  }
-  
-  /* Auth pages */
-  .auth-card { 
-    padding: 24px 20px; 
-    max-width: 100%;
-    border-radius: 12px;
-  }
-  .auth-logo h1 { 
-    font-size: 20px; 
-  }
