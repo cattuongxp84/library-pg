@@ -412,10 +412,10 @@ export default function AdminBooks() {
                       {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
                   </div>
-                  <div className="form-group"><label className="form-label">Khoa viện *</label>
-                    <select className="form-control" value={form.department_id} onChange={e => setForm({ ...form, department_id: e.target.value })} required>
-                      <option value="">Chọn khoa viện</option>
-                      {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  <div className="form-group"><label className="form-label">Khoa viện</label>
+                    <select className="form-control" value={String(form.department_id || '')} onChange={e => setForm({ ...form, department_id: e.target.value })}>
+                      <option value="">-- Không chọn --</option>
+                      {departments.map(d => <option key={d.id} value={String(d.id)}>{d.name}</option>)}
                     </select>
                   </div>
                   <div className="form-group"><label className="form-label">ISBN</label><input className="form-control" {...f('isbn')} /></div>
