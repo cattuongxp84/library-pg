@@ -18,12 +18,14 @@ function AnimatedCounter({ target, duration = 2000 }) {
   const started = useRef(false);
 
   useEffect(() => {
+    const numTarget = typeof target === 'number' ? target : parseInt(target) || 0;
+    if (numTarget === 0) return;
+    started.current = false;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !started.current) {
           started.current = true;
           const startTime = Date.now();
-          const numTarget = typeof target === 'number' ? target : parseInt(target) || 0;
           const tick = () => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min(elapsed / duration, 1);

@@ -27,6 +27,13 @@ const centerStyle = {
 // ─── Helper format ngày thành string dd/mm/yyyy (tránh Excel auto-convert) ───
 const formatDate = (val) => {
   if (!val) return '';
+  // Nếu là Date object (từ Sequelize)
+  if (val instanceof Date) {
+    const day   = String(val.getDate()).padStart(2, '0');
+    const month = String(val.getMonth() + 1).padStart(2, '0');
+    const year  = val.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
   // Nếu là số nguyên (Excel serial date), convert sang Date
   if (typeof val === 'number') {
     const d = new Date(Math.round((val - 25569) * 86400 * 1000));
@@ -334,59 +341,59 @@ exports.exportUsers = async (users) => {
   return { filename, filepath };
 };
 
-exports.exportBorrowHistory = async (borrows) => {
+// ─── Export Borrows ────────────────────────────────────────────────────────────
+exports.exportBorrows = async (borrows) => {
   const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Borrow History');
+  const worksheet = workbook.addWorksheet('Lịch sử mượn trả');
 
   worksheet.columns = [
-    { header: 'ID', key: 'id', width: 10 },
-    { header: 'Tên sinh viên', key: 'student_name', width: 28 },
-    { header: 'Mã SV', key: 'student_id', width: 16 },
-    { header: 'Email', key: 'email', width: 28 },
-    { header: 'Tên sách', key: 'book_title', width: 30 },
-    { header: 'Tác giả', key: 'author', width: 22 },
+    { header: 'STT', key: 'stt', width: 8 },
+    { header: 'Mã SV', key: 'student_id', width: 15 },
+    { header: 'Tên Sinh Viên', key: 'student_name', width: 22 },
+    { header: 'Email', key: 'email', width: 25 },
+    { header: 'Tên Sách', key: 'book_title', width: 30 },
+    { header: 'Tác Giả', key: 'author', width: 20 },
     { header: 'Mã ĐKCB', key: 'copy_code', width: 18 },
-    { header: 'Ngày mượn', key: 'borrow_date', width: 14 },
-    { header: 'Hạn trả', key: 'due_date', width: 14 },
-    { header: 'Ngày trả', key: 'return_date', width: 14 },
-    { header: 'Trạng thái', key: 'status', width: 14 },
-    { header: 'Tiền phạt', key: 'fine_amount', width: 14 },
-    { header: 'Đã thanh toán', key: 'fine_paid', width: 14 },
-    { header: 'Xử lý bởi', key: 'processed_by', width: 20 },
-    { header: 'Ghi chú', key: 'note', width: 30 },
+    { header: 'Ngày Mượn', key: 'borrow_date', width: 14 },
+    { header: 'Hạn Trả', key: 'due_date', width: 14 },
+    { header: 'Ngày Trả', key: 'return_date', width: 14 },
+    { header: 'Trạng Thái', key: 'status', width: 14 },
+    { header: 'Loại Mượn', key: 'borrow_type', width: 12 },
+    { header: 'Số Lần Gia Hạn', key: 'renew_count', width: 14 },
+    { header: 'Ghi Chú', key: 'note', width: 25 },
   ];
 
   worksheet.getRow(1).style = headerStyle;
   worksheet.getRow(1).height = 25;
 
-  borrows.forEach(borrow => {
-    const fine = borrow.Fine || borrow.fine || null;
+  const statusVi = { borrowed: 'Đang mượn', returned: 'Đã trả', overdue: 'Quá hạn', renewed: 'Đã gia hạn', lost: 'Mất sách' };
+  const typeVi = { home: 'Mượn về', onsite: 'Đọc tại chỗ' };
+
+  let stt = 1;
+  borrows.forEach(b => {
     worksheet.addRow({
-      id: borrow.id,
-      student_name: borrow.user?.name || '',
-      student_id: borrow.user?.student_id || '',
-      email: borrow.user?.email || '',
-      book_title: borrow.book?.title || '',
-      author: borrow.book?.author || '',
-      copy_code: borrow.copy?.copy_code || '',
-      borrow_date: formatDate(borrow.borrow_date),
-      due_date: formatDate(borrow.due_date),
-      return_date: formatDate(borrow.return_date),
-      status: borrow.status,
-      fine_amount: fine?.amount || 0,
-      fine_paid: fine?.is_paid ? 'YES' : 'NO',
-      processed_by: borrow.processor?.name || '',
-      note: borrow.note || '',
+      stt: stt++,
+      student_id: b.user?.student_id || '',
+      student_name: b.user?.name || '',
+      email: b.user?.email || '',
+      book_title: b.book?.title || '',
+      author: b.book?.author || '',
+      copy_code: b.copy?.copy_code || '',
+      borrow_date: b.borrow_date ? formatDate(b.borrow_date) : '',
+      due_date: b.due_date ? formatDate(b.due_date) : '',
+      return_date: b.return_date ? formatDate(b.return_date) : '',
+      status: statusVi[b.status] || b.status,
+      borrow_type: typeVi[b.borrow_type] || b.borrow_type || '',
+      renew_count: b.renew_count || 0,
+      note: b.note || '',
     });
   });
 
   worksheet.eachRow((row, rowNumber) => {
-    if (rowNumber > 1) {
-      row.eachCell(cell => { cell.style = cellStyle; });
-    }
+    if (rowNumber > 1) row.eachCell(cell => { cell.style = cellStyle; });
   });
 
-  const filename = `borrow-history-${new Date().toISOString().split('T')[0]}.xlsx`;
+  const filename = `borrows-${new Date().toISOString().split('T')[0]}.xlsx`;
   const filepath = path.join(tmpDir, filename);
   await workbook.xlsx.writeFile(filepath);
   return { filename, filepath };

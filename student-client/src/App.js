@@ -10,8 +10,8 @@ import createLibraryTheme from './i18n/theme';
 import HomePage from './pages/HomePage';
 import BooksPage from './pages/BooksPage';
 import BookDetailPage from './pages/BookDetailPage';
-import { LoginPage, RegisterPage, ForgotPasswordPage } from './pages/AuthPages';
-import { MyBorrowsPage, MyReservationsPage, MyFinesPage, MessagesPage, ProfilePage } from './pages/OtherPages';
+import { LoginPage, RegisterPage, ForgotPasswordPage, ResetPasswordPage } from './pages/AuthPages';
+import { MyBorrowsPage, MyReservationsPage, MessagesPage, ProfilePage, MyFinesPage } from './pages/OtherPages';
 import Footer from './components/Footer';
 
 const RequireAuth = ({ children }) => {
@@ -34,11 +34,12 @@ function AppContent() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         {/* Protected routes */}
         <Route path="/my-borrows" element={<RequireAuth><MyBorrowsPage /></RequireAuth>} />
-        <Route path="/my-reservations" element={<RequireAuth><MyReservationsPage /></RequireAuth>} />
         <Route path="/my-fines" element={<RequireAuth><MyFinesPage /></RequireAuth>} />
+        <Route path="/my-reservations" element={<RequireAuth><MyReservationsPage /></RequireAuth>} />
         <Route path="/messages" element={<RequireAuth><MessagesPage /></RequireAuth>} />
         <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
 

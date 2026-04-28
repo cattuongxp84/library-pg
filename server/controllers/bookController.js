@@ -35,7 +35,7 @@ const buildAccessFilter = (req) => {
 // ─── GET /api/books ───────────────────────────────────────────────────────────
 exports.getBooks = async (req, res) => {
   try {
-    const { search, category, available, has_pdf, page = 1, limit = 12, sort = 'created_at', order = 'DESC' } = req.query;
+    const { search, category, department, available, has_pdf, page = 1, limit = 12, sort = 'created_at', order = 'DESC' } = req.query;
     const where = { is_active: true };
 
     if (search) {
@@ -45,8 +45,8 @@ exports.getBooks = async (req, res) => {
         { isbn:   { [Op.iLike]: `%${search}%` } },
       ];
     }
-    if (category)             where.category_id      = category;
-    if (req.query.department) where.department_id    = req.query.department;
+    if (category)              where.category_id      = category;
+    if (department)            where.department_id    = department;
     if (available === 'true')  where.available_copies = { [Op.gt]: 0 };
     if (available === 'false') where.available_copies = 0;
     if (has_pdf === 'true')    where.pdf_url = { [Op.ne]: null };
@@ -54,13 +54,22 @@ exports.getBooks = async (req, res) => {
 
     const { count, rows } = await Book.findAndCountAll({
       where,
-      include: [{ 
-        model: Category, 
-        as: 'category', 
-        attributes: ['id', 'name'],
-        where: { is_active: true },
-        required: false, // LEFT JOIN để sách không có danh mục vẫn hiển thị
-      }],
+      include: [
+        { 
+          model: Category, 
+          as: 'category', 
+          attributes: ['id', 'name'],
+          where: { is_active: true },
+          required: false,
+        },
+        {
+          model: Department,
+          as: 'department',
+          attributes: ['id', 'name'],
+          where: { is_active: true },
+          required: false,
+        },
+      ],
       order: [[sort, order]],
       limit: parseInt(limit),
       offset: (parseInt(page) - 1) * parseInt(limit),
@@ -76,7 +85,10 @@ exports.getBooks = async (req, res) => {
 exports.getBook = async (req, res) => {
   try {
     const book = await Book.findByPk(req.params.id, {
-      include: [{ model: Category, as: 'category', attributes: ['id', 'name'] }],
+      include: [
+        { model: Category, as: 'category', attributes: ['id', 'name'] },
+        { model: Department, as: 'department', attributes: ['id', 'name'] },
+      ],
     });
     if (!book || !book.is_active)
       return res.status(404).json({ success: false, message: 'Không tìm thấy sách' });

@@ -101,11 +101,12 @@ exports.deleteDepartment = async (req, res) => {
     const d = await Department.findByPk(req.params.id);
     if (!d) return res.status(404).json({ success: false, message: 'Không tìm thấy' });
 
+    // Kiểm tra xem có sách nào thuộc khoa/viện này không
     const bookCount = await Book.count({ where: { department_id: d.id, is_active: true } });
     if (bookCount > 0) {
       return res.status(400).json({
         success: false,
-        message: `Không thể xóa khoa/viện này vì còn ${bookCount} cuốn sách. Vui lòng chuyển hoặc xóa sách trước.`,
+        message: `Không thể xóa khoa/viện này vì còn ${bookCount} cuốn sách liên quan. Vui lòng chuyển hoặc xóa sách trước.`
       });
     }
 
