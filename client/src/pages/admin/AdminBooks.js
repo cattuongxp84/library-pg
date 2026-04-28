@@ -100,7 +100,7 @@ export default function AdminBooks() {
         pages: form.pages ? parseInt(form.pages) : null,
         deposit: parseInt(form.deposit) || 0,
         category_id: parseInt(form.category_id),
-        department_id: parseInt(form.department_id),
+        department_id: form.department_id ? parseInt(form.department_id) : null,
       };
 
       let bookId = editing;
@@ -412,8 +412,8 @@ export default function AdminBooks() {
                       {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
                   </div>
-                  <div className="form-group"><label className="form-label">Khoa viện *</label>
-                    <select className="form-control" value={form.department_id} onChange={e => setForm({ ...form, department_id: e.target.value })} required>
+                  <div className="form-group"><label className="form-label">Khoa viện</label>
+                    <select className="form-control" value={form.department_id} onChange={e => setForm({ ...form, department_id: e.target.value })}>
                       <option value="">Chọn khoa viện</option>
                       {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                     </select>
