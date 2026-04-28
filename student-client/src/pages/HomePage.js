@@ -161,7 +161,7 @@ export default function HomePage() {
     if (!user) return setUserAlert({ overdue: 0, unpaid: 0 });
     let cancelled = false;
     Promise.all([
-      api.get('/borrows/my', { params: { status: 'overdue' } }),
+      api.get('/borrows/my/overdue'),
       api.get('/fines/my'),
     ]).then(([overdueRes, finesRes]) => {
       if (cancelled) return;
@@ -262,10 +262,25 @@ export default function HomePage() {
           </div>
 
           {user && (userAlert.overdue > 0 || userAlert.unpaid > 0) && (
-            <div className="home-alert-card fade-in-up" style={{ animationDelay: '0.45s' }}>
-              <div>
-                <h3>Cảnh báo dành cho bạn</h3>
-                <p>
+            <div
+              className="fade-in-up"
+              style={{
+                animationDelay: '0.45s',
+                background: 'rgba(255,255,255,0.95)',
+                borderRadius: 20,
+                padding: 22,
+                marginTop: 24,
+                boxShadow: '0 16px 50px rgba(15,23,42,0.08)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: 16,
+                flexWrap: 'wrap',
+              }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <h3 style={{ margin: 0, fontSize: 20, color: 'var(--text)' }}>Cảnh báo dành cho bạn</h3>
+                <p style={{ margin: '10px 0 0', color: 'var(--muted)', lineHeight: 1.6 }}>
                   {userAlert.overdue > 0 && `Bạn có ${userAlert.overdue} phiếu mượn quá hạn.`}
                   {userAlert.overdue > 0 && userAlert.unpaid > 0 && ' '}
                   {userAlert.unpaid > 0 && `Còn ${userAlert.unpaid.toLocaleString()} VNĐ tiền phạt chưa thanh toán.`}

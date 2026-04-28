@@ -10,7 +10,7 @@ import createLibraryTheme from './i18n/theme';
 import HomePage from './pages/HomePage';
 import BooksPage from './pages/BooksPage';
 import BookDetailPage from './pages/BookDetailPage';
-import { LoginPage, RegisterPage } from './pages/AuthPages';
+import { LoginPage, RegisterPage, ForgotPasswordPage } from './pages/AuthPages';
 import { MyBorrowsPage, MyReservationsPage, MyFinesPage, MessagesPage, ProfilePage } from './pages/OtherPages';
 import Footer from './components/Footer';
 
@@ -33,6 +33,7 @@ function AppContent() {
         <Route path="/books/:id" element={<BookDetailPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         {/* Protected routes */}
         <Route path="/my-borrows" element={<RequireAuth><MyBorrowsPage /></RequireAuth>} />

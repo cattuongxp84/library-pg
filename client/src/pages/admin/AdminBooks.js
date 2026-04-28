@@ -77,11 +77,11 @@ export default function AdminBooks() {
     setEditing(b.id);
     setForm({
       title: b.title, author: b.author, isbn: b.isbn || '',
-      category_id: b.category?.id || '', department_id: b.department?.id || '', publisher: b.publisher || '',
-      publish_year: b.publish_year || '', edition: b.edition || '',
+      category_id: String(b.category?.id || ''), department_id: String(b.department?.id || ''), publisher: b.publisher || '',
+      publish_year: b.publish_year ? String(b.publish_year) : '', edition: b.edition || '',
       description: b.description || '', total_copies: b.total_copies,
       location: b.location || '', language: b.language || 'Tiếng Việt',
-      pages: b.pages || '', deposit: b.deposit || 0,
+      pages: b.pages ? String(b.pages) : '', deposit: String(b.deposit || 0),
       access_level: b.access_level || 'public',
       is_public_pdf: b.is_public_pdf || false,
     });
