@@ -78,6 +78,7 @@ export default function Navbar() {
           position: 'fixed', inset: 0, zIndex: 99,
           background: 'rgba(15,23,42,0.5)',
           backdropFilter: 'blur(4px)',
+          pointerEvents: 'auto',
         }} onClick={() => setMobileOpen(false)}>
           <div onClick={e => e.stopPropagation()} style={{
             position: 'absolute', top: 0, right: 0,
@@ -86,30 +87,31 @@ export default function Navbar() {
             padding: '20px 16px',
             display: 'flex', flexDirection: 'column', gap: 6,
             boxShadow: '-8px 0 32px rgba(0,0,0,0.15)',
+            pointerEvents: 'auto',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <span style={{ fontWeight: 700, color: 'var(--blue)' }}>Menu</span>
-              <button className="btn btn-secondary btn-sm" onClick={() => setMobileOpen(false)}><FiX size={16} /></button>
+              <button className="btn btn-secondary btn-sm" onClick={() => setMobileOpen(false)} style={{ pointerEvents: 'auto' }}><FiX size={16} /></button>
             </div>
             {navLinks.map(l => (
               <NavLink key={l.to} to={l.to} end={l.end}
                 className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}
-                style={{ fontSize: 15, padding: '10px 14px' }}
+                style={{ fontSize: 15, padding: '10px 14px', pointerEvents: 'auto' }}
                 onClick={() => setMobileOpen(false)}>
                 {l.icon}{l.label}
               </NavLink>
             ))}
             {user ? (
               <>
-                <NavLink to="/profile" className="nav-link" style={{ fontSize: 15, padding: '10px 14px' }} onClick={() => setMobileOpen(false)}>
+                <NavLink to="/profile" className="nav-link" style={{ fontSize: 15, padding: '10px 14px', pointerEvents: 'auto' }} onClick={() => setMobileOpen(false)}>
                   <FiUser size={14} /> Tài khoản ({user.name})
                 </NavLink>
-                <button className="btn btn-secondary btn-block" style={{ marginTop: 8 }} onClick={handleLogout}>
+                <button className="btn btn-secondary btn-block" style={{ marginTop: 8, pointerEvents: 'auto' }} onClick={handleLogout}>
                   <FiLogOut size={14} /> Đăng xuất
                 </button>
               </>
             ) : (
-              <Link to="/login" className="btn btn-primary btn-block" style={{ marginTop: 8 }} onClick={() => setMobileOpen(false)}>
+              <Link to="/login" className="btn btn-primary btn-block" style={{ marginTop: 8, pointerEvents: 'auto' }} onClick={() => setMobileOpen(false)}>
                 <FiLogIn size={14} /> Đăng nhập
               </Link>
             )}

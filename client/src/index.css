@@ -173,10 +173,12 @@ textarea.form-control { resize: vertical; min-height: 80px; }
     background: rgba(0, 0, 0, 0.5);
     display: none;
     z-index: 999;
+    pointer-events: auto;
   }
 
   .sidebar-overlay.open {
     display: block;
+    pointer-events: auto;
   }
 
   .main-content { 
@@ -695,3 +697,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
     font-size: 20px; 
   }
 }
+ 
+ / *   M o b i l e   s i d e b a r   -   e n s u r e   c l i c k a b i l i t y   * /  
+ @ m e d i a   ( m a x - w i d t h :   7 6 8 p x )   {   . s i d e b a r   {   p o i n t e r - e v e n t s :   a u t o ;   }   . s i d e b a r - o v e r l a y   {   p o i n t e r - e v e n t s :   a u t o ;   }   . s i d e b a r - n a v   a   {   p o i n t e r - e v e n t s :   a u t o ;   }   }  
+ 

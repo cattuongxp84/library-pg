@@ -81,6 +81,7 @@ export default function Layout({ children }) {
             background: 'rgba(0, 0, 0, 0.5)',
             zIndex: 99,
             display: 'block',
+            pointerEvents: 'auto',
           }}
           className={sidebarOpen ? 'sidebar-overlay open' : 'sidebar-overlay'}
           onClick={() => setSidebarOpen(false)}
@@ -95,6 +96,7 @@ export default function Layout({ children }) {
         scrollbarWidth: 'none',
         transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
         transition: 'transform 0.3s ease',
+        pointerEvents: 'auto',
       }}
       className={sidebarOpen ? 'open' : 'closed'}>
         {/* Logo */}
