@@ -77,7 +77,7 @@ export default function AdminBooks() {
     setEditing(b.id);
     setForm({
       title: b.title, author: b.author, isbn: b.isbn || '',
-      category_id: b.category?.id || '', department_id: b.department?.id || '', publisher: b.publisher || '',
+      category_id: b.category?.id || b.category_id || '', department_id: b.department?.id || b.department_id || '', publisher: b.publisher || '',
       publish_year: b.publish_year || '', edition: b.edition || '',
       description: b.description || '', total_copies: b.total_copies,
       location: b.location || '', language: b.language || 'Tiếng Việt',
@@ -100,7 +100,7 @@ export default function AdminBooks() {
         pages: form.pages ? parseInt(form.pages) : null,
         deposit: parseInt(form.deposit) || 0,
         category_id: parseInt(form.category_id),
-        department_id: parseInt(form.department_id),
+        department_id: form.department_id ? parseInt(form.department_id) : null,
       };
 
       let bookId = editing;
