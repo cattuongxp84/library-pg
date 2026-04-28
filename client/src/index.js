@@ -4,3 +4,6 @@ import './index.css';
 import App from './App';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<React.StrictMode><App /></React.StrictMode>);
+
+// Department.hasMany(User, { foreignKey: 'department_id', as: 'students' });
+// User.belongsTo(Department, { foreignKey: 'department_id', as: 'department' });
