@@ -284,3 +284,100 @@ export function RegisterPage() {
     </div>
   );
 }
+
+export function ForgotPasswordPage() {
+  const [form, setForm] = useState({ email: '', newPassword: '', confirm: '' });
+  const [showPw, setShowPw] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (form.newPassword !== form.confirm) {
+      toast.error('Mật khẩu xác nhận không khớp');
+      return;
+    }
+    if (form.newPassword.length < 6) {
+      toast.error('Mật khẩu phải có ít nhất 6 ký tự');
+      return;
+    }
+    setLoading(true);
+    try {
+      await api.post('/auth/forgot-password', { email: form.email, newPassword: form.newPassword });
+      toast.success('Mật khẩu mới đã được cập nhật. Vui lòng đăng nhập lại.');
+      navigate('/login');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Lỗi đặt lại mật khẩu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="auth-page">
+      <div className="auth-card">
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div style={{
+            width: 64, height: 64,
+            background: 'linear-gradient(135deg, #2563eb, #4f46e5)',
+            borderRadius: 18,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 16px',
+            boxShadow: '0 8px 24px rgba(37,99,235,0.3)',
+          }}>
+            <FiLock size={28} color="#fff" />
+          </div>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: -0.3 }}>
+            Quên mật khẩu
+          </h2>
+          <p style={{ color: 'var(--muted)', marginTop: 6, fontSize: 14 }}>
+            Nhập email và mật khẩu mới để đặt lại.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <InputField
+            icon={<FiMail size={16} />}
+            label="Email"
+            type="email"
+            placeholder="email@example.com"
+            value={form.email}
+            onChange={e => setForm({ ...form, email: e.target.value })}
+            required
+          />
+          <InputField
+            icon={<FiLock size={16} />}
+            label="Mật khẩu mới"
+            type={showPw ? 'text' : 'password'}
+            placeholder="Tối thiểu 6 ký tự"
+            value={form.newPassword}
+            onChange={e => setForm({ ...form, newPassword: e.target.value })}
+            required
+            minLength={6}
+            extra={<button type="button" onClick={() => setShowPw(!showPw)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)' }}>{showPw ? <FiEyeOff size={16} /> : <FiEye size={16} />}</button>}
+          />
+          <InputField
+            icon={<FiLock size={16} />}
+            label="Xác nhận mật khẩu mới"
+            type="password"
+            placeholder="Nhập lại mật khẩu mới"
+            value={form.confirm}
+            onChange={e => setForm({ ...form, confirm: e.target.value })}
+            required
+            minLength={6}
+          />
+
+          <button className="btn btn-primary btn-block btn-lg" style={{ marginTop: 8 }} type="submit" disabled={loading}>
+            {loading ? 'Đang cập nhật...' : 'Đặt lại mật khẩu'}
+          </button>
+        </form>
+
+        <p style={{ textAlign: 'center', marginTop: 22, fontSize: 14, color: 'var(--muted)' }}>
+          <Link to="/login" style={{ color: 'var(--blue)', fontWeight: 700 }}>Quay lại đăng nhập</Link>
+        </p>
+      </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}

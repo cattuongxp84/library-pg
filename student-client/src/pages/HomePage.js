@@ -130,6 +130,7 @@ export default function HomePage() {
   const [stats, setStats] = useState({ books: 0, users: 0, borrows: 0, copies: 0, ebooks: 0 });
   const [loading, setLoading] = useState(true);
   const [activeCat, setActiveCat] = useState('');
+  const [userAlert, setUserAlert] = useState({ overdue: 0, unpaid: 0 });
 
   useEffect(() => {
     Promise.all([
@@ -155,6 +156,23 @@ export default function HomePage() {
       console.error('Error loading page:', err);
     }).finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!user) return setUserAlert({ overdue: 0, unpaid: 0 });
+    let cancelled = false;
+    Promise.all([
+      api.get('/borrows/my', { params: { status: 'overdue' } }),
+      api.get('/fines/my'),
+    ]).then(([overdueRes, finesRes]) => {
+      if (cancelled) return;
+      const overdue = (overdueRes.data.data || []).length;
+      const unpaid = (finesRes.data.data || []).filter(f => !f.is_paid).reduce((sum, f) => sum + (f.amount || 0), 0);
+      setUserAlert({ overdue, unpaid });
+    }).catch(() => {
+      if (!cancelled) setUserAlert({ overdue: 0, unpaid: 0 });
+    });
+    return () => { cancelled = true; };
+  }, [user]);
 
   const handleSearch = () => {
     if (search.trim()) navigate(`/books?search=${encodeURIComponent(search)}`);
@@ -242,6 +260,22 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+
+          {user && (userAlert.overdue > 0 || userAlert.unpaid > 0) && (
+            <div className="home-alert-card fade-in-up" style={{ animationDelay: '0.45s' }}>
+              <div>
+                <h3>Cảnh báo dành cho bạn</h3>
+                <p>
+                  {userAlert.overdue > 0 && `Bạn có ${userAlert.overdue} phiếu mượn quá hạn.`}
+                  {userAlert.overdue > 0 && userAlert.unpaid > 0 && ' '}
+                  {userAlert.unpaid > 0 && `Còn ${userAlert.unpaid.toLocaleString()} VNĐ tiền phạt chưa thanh toán.`}
+                </p>
+              </div>
+              <button className="btn btn-secondary" onClick={() => navigate('/my-fines')}>
+                Xem chi tiết
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
