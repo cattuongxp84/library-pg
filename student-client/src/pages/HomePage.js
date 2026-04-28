@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FiSearch, FiBookOpen, FiArrowRight, FiTag } from 'react-icons/fi';
+import { FiSearch, FiBookOpen, FiArrowRight, FiTag, FiUsers, FiLayers, FiTrendingUp, FiMonitor, FiRefreshCw, FiMessageSquare, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -11,6 +11,37 @@ const PALETTES = [
   ['#fccb90','#d57eeb'], ['#a1c4fd','#c2e9fb'], ['#fd7043','#ff8a65'],
   ['#26c6da','#00acc1'], ['#ff6b6b','#feca57'], ['#48dbfb','#ff9ff3'],
 ];
+
+function AnimatedCounter({ target, duration = 2000 }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true;
+          const startTime = Date.now();
+          const numTarget = typeof target === 'number' ? target : parseInt(target) || 0;
+          const tick = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setCount(Math.floor(eased * numTarget));
+            if (progress < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [target, duration]);
+
+  return <span ref={ref}>{count.toLocaleString()}</span>;
+}
 
 function Cover({ book, idx }) {
   const [c1, c2] = PALETTES[idx % PALETTES.length];
@@ -48,18 +79,40 @@ function BookCard({ book, idx, onClick }) {
 }
 
 function BookRow({ books, title, icon, startIdx = 0, onBook, viewAllHref }) {
+  const scrollRef = useRef(null);
   if (!books?.length) return null;
+
+  const scroll = (dir) => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: dir * 320, behavior: 'smooth' });
+    }
+  };
+
   return (
-    <div style={{ marginBottom: 44 }}>
+    <div className="book-section fade-in-up">
       <div className="section-header">
-        <h3 className="section-title">{icon} {title}</h3>
-        <Link to={viewAllHref || '/books'} className="section-link">
-          Xem tất cả <FiArrowRight size={13} />
-        </Link>
+        <h3 className="section-title">
+          <span className="section-icon">{icon}</span> {title}
+        </h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div className="scroll-nav">
+            <button className="scroll-btn" onClick={() => scroll(-1)} aria-label="Scroll left">
+              <FiChevronLeft size={16} />
+            </button>
+            <button className="scroll-btn" onClick={() => scroll(1)} aria-label="Scroll right">
+              <FiChevronRight size={16} />
+            </button>
+          </div>
+          <Link to={viewAllHref || '/books'} className="section-link">
+            Xem tất cả <FiArrowRight size={13} />
+          </Link>
+        </div>
       </div>
-      <div className="books-grid">
+      <div className="books-scroll" ref={scrollRef}>
         {books.slice(0, 12).map((b, i) => (
-          <BookCard key={b.id} book={b} idx={startIdx + i} onClick={() => onBook(b)} />
+          <div className="books-scroll-item" key={b.id}>
+            <BookCard book={b} idx={startIdx + i} onClick={() => onBook(b)} />
+          </div>
         ))}
       </div>
     </div>
@@ -116,70 +169,99 @@ export default function HomePage() {
     <>
       <Navbar />
 
-      {/* ── HERO ─────────────────────────────────────────── */}
-      <div className="hero">
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 700, margin: '0 auto' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 99, padding: '5px 14px', fontSize: 13, fontWeight: 500, marginBottom: 22, color: 'rgba(255,255,255,0.9)' }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#4ade80', display: 'inline-block', flexShrink: 0 }} />
+      {/* HERO */}
+      <div className="hero-modern">
+        <div className="hero-bg-shapes">
+          <div className="hero-shape hero-shape-1" />
+          <div className="hero-shape hero-shape-2" />
+          <div className="hero-shape hero-shape-3" />
+          <div className="hero-float hero-float-1">
+            <FiBookOpen size={24} />
+          </div>
+          <div className="hero-float hero-float-2">
+            <FiLayers size={20} />
+          </div>
+          <div className="hero-float hero-float-3">
+            <FiTrendingUp size={18} />
+          </div>
+        </div>
+
+        <div className="hero-content">
+          <div className="hero-badge fade-in-up">
+            <span className="hero-badge-dot" />
             Hệ thống đang hoạt động
           </div>
 
-          <h1 style={{ fontSize: 44, fontWeight: 900, lineHeight: 1.15, marginBottom: 14, letterSpacing: -1, color: '#fff' }}>
-            Thư viện trong<br />
-            <span style={{ background: 'linear-gradient(90deg,#93c5fd,#c4b5fd)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              tầm tay bạn
-            </span>
+          <h1 className="hero-heading fade-in-up" style={{ animationDelay: '0.1s' }}>
+            Thư viện số
+            <br />
+            <span className="hero-gradient-text">trong tầm tay bạn</span>
           </h1>
 
-          <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.75)', marginBottom: 32, lineHeight: 1.65 }}>
-            Tra cứu, mượn sách và đọc E-Book trực tuyến — nhanh, tiện, miễn phí
+          <p className="hero-subtitle fade-in-up" style={{ animationDelay: '0.2s' }}>
+            Tra cứu, mượn sách và đọc E-Book trực tuyến — nhanh, tiện, miễn phí.
+            <br className="hide-mobile" />
+            Trải nghiệm thư viện hiện đại ngay hôm nay.
           </p>
 
-          {/* Search bar */}
-          <div className="hero-search">
-            <FiSearch size={17} color="rgba(255,255,255,0.7)" style={{ flexShrink: 0 }} />
-            <input
-              placeholder="Tìm tên sách, tác giả, ISBN..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSearch()}
-            />
-            <button onClick={handleSearch}>Tìm kiếm</button>
+          <div className="hero-search-wrap fade-in-up" style={{ animationDelay: '0.3s' }}>
+            <div className="hero-search">
+              <FiSearch size={18} className="hero-search-icon" />
+              <input
+                placeholder="Tìm tên sách, tác giả, ISBN..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSearch()}
+              />
+              <button onClick={handleSearch}>Tìm kiếm</button>
+            </div>
+            <div className="hero-search-hints">
+              <span>Phổ biến:</span>
+              <button onClick={() => { setSearch('Lập trình'); navigate('/books?search=Lập trình'); }}>Lập trình</button>
+              <button onClick={() => { setSearch('Kinh tế'); navigate('/books?search=Kinh tế'); }}>Kinh tế</button>
+              <button onClick={() => { setSearch('Toán'); navigate('/books?search=Toán'); }}>Toán học</button>
+            </div>
           </div>
 
-          {/* Quick stats */}
-          <div style={{ display: 'flex', gap: 36, justifyContent: 'center', marginTop: 36, flexWrap: 'wrap' }}>
+          {/* Stats cards */}
+          <div className="hero-stats fade-in-up" style={{ animationDelay: '0.4s' }}>
             {[
-              { n: stats.books.toLocaleString(), label: 'Đầu sách' },
-              { n: stats.copies.toLocaleString(), label: 'Bản sao' },
-              { n: stats.ebooks.toLocaleString(), label: 'File PDF' },
+              { icon: <FiBookOpen size={22} />, n: stats.books, label: 'Đầu sách', color: '#60a5fa' },
+              { icon: <FiLayers size={22} />, n: stats.copies, label: 'Bản sao', color: '#a78bfa' },
+              { icon: <FiMonitor size={22} />, n: stats.ebooks, label: 'E-Book PDF', color: '#34d399' },
+              { icon: <FiUsers size={22} />, n: stats.users, label: 'Độc giả', color: '#fbbf24' },
             ].map(s => (
-              <div key={s.label} style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 28, fontWeight: 900, color: '#fff', letterSpacing: -0.5 }}>{s.n}</div>
-                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', marginTop: 2 }}>{s.label}</div>
+              <div key={s.label} className="hero-stat-card">
+                <div className="hero-stat-icon" style={{ color: s.color }}>
+                  {s.icon}
+                </div>
+                <div className="hero-stat-number">
+                  <AnimatedCounter target={s.n} />
+                </div>
+                <div className="hero-stat-label">{s.label}</div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* ── Category pills ───────────────────────────────── */}
-      <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '13px 0', position: 'sticky', top: 'var(--nav-h)', zIndex: 50 }}>
+      {/* Category pills */}
+      <div className="cat-bar">
         <div className="container">
           <div className="cat-pills">
             <button className={`cat-pill ${activeCat === '' ? 'active' : ''}`} onClick={() => { setActiveCat(''); navigate('/books'); }}>
-              🔍 Tất cả
+              <FiSearch size={13} /> Tất cả
             </button>
             {categories.map(c => (
               <button key={c.id} className={`cat-pill ${activeCat === String(c.id) ? 'active' : ''}`} onClick={() => handleCat(c.id)}>
-                {c.name}
+                <FiTag size={12} /> {c.name}
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* ── Main content ──────────────────────────────────── */}
+      {/* Main content */}
       <div className="container section">
         {loading ? (
           <div style={{ padding: 80, textAlign: 'center' }}>
@@ -196,53 +278,60 @@ export default function HomePage() {
           </>
         )}
 
-        {/* ── Feature cards ─────────────────────────────── */}
+        {/* Feature cards */}
         {!loading && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginTop: 8 }}>
-            {[
-              { icon: '📖', title: 'Tra cứu sách', desc: 'Tìm theo tên, tác giả, thể loại hoặc ISBN', href: '/books', color: 'var(--blue)', bg: 'var(--blue-light)' },
-              { icon: '📱', title: 'E-Book online', desc: 'Đọc sách PDF ngay trong trình duyệt', href: '/books?has_pdf=true', color: '#16a34a', bg: '#f0fdf4' },
-              { icon: '🔄', title: 'Gia hạn online', desc: 'Gia hạn sách mà không cần đến thư viện', href: user ? '/my-borrows' : '/login', color: '#d97706', bg: '#fff7ed' },
-              { icon: '💬', title: 'Liên hệ thủ thư', desc: 'Gửi câu hỏi và nhận hỗ trợ nhanh chóng', href: user ? '/messages' : '/login', color: '#7c3aed', bg: '#f5f3ff' },
-            ].map(f => (
-              <Link key={f.title} to={f.href} className="feature-card" style={{ textDecoration: 'none' }}>
-                <div style={{ width: 42, height: 42, borderRadius: 12, background: f.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, marginBottom: 12 }}>
-                  {f.icon}
-                </div>
-                <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--text)', marginBottom: 5 }}>{f.title}</div>
-                <div style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.6 }}>{f.desc}</div>
-              </Link>
-            ))}
+          <div className="features-section fade-in-up">
+            <div className="features-header">
+              <h2 className="features-title">Khám phá thư viện</h2>
+              <p className="features-subtitle">Trải nghiệm đầy đủ tính năng của hệ thống thư viện số</p>
+            </div>
+            <div className="features-grid">
+              {[
+                { icon: <FiSearch size={26} />, title: 'Tra cứu sách', desc: 'Tìm theo tên, tác giả, thể loại hoặc ISBN với kết quả tức thì', href: '/books', gradient: 'linear-gradient(135deg, #3b82f6, #1d4ed8)' },
+                { icon: <FiMonitor size={26} />, title: 'E-Book online', desc: 'Đọc sách PDF ngay trong trình duyệt, không cần tải về', href: '/books?has_pdf=true', gradient: 'linear-gradient(135deg, #10b981, #059669)' },
+                { icon: <FiRefreshCw size={26} />, title: 'Gia hạn online', desc: 'Gia hạn sách trực tuyến mà không cần đến thư viện', href: user ? '/my-borrows' : '/login', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
+                { icon: <FiMessageSquare size={26} />, title: 'Liên hệ thủ thư', desc: 'Gửi câu hỏi và nhận hỗ trợ nhanh chóng từ thủ thư', href: user ? '/messages' : '/login', gradient: 'linear-gradient(135deg, #8b5cf6, #6d28d9)' },
+              ].map(f => (
+                <Link key={f.title} to={f.href} className="feature-card-modern">
+                  <div className="feature-icon-wrap" style={{ background: f.gradient }}>
+                    {f.icon}
+                  </div>
+                  <div className="feature-content">
+                    <div className="feature-card-title">{f.title}</div>
+                    <div className="feature-card-desc">{f.desc}</div>
+                  </div>
+                  <FiArrowRight size={18} className="feature-arrow" />
+                </Link>
+              ))}
+            </div>
           </div>
         )}
 
-        {/* ── CTA nếu chưa login ────────────────────────── */}
+        {/* CTA for non-logged-in users */}
         {!user && !loading && (
-          <div style={{
-            marginTop: 40,
-            padding: '32px 28px',
-            background: 'linear-gradient(135deg, #1e3a8a, #2563eb)',
-            borderRadius: 'var(--radius-lg)',
-            color: '#fff',
-            textAlign: 'center',
-          }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>🎓</div>
-            <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>Bắt đầu mượn sách ngay hôm nay</h3>
-            <p style={{ color: 'rgba(255,255,255,0.75)', marginBottom: 20, fontSize: 15 }}>
-              Đăng ký miễn phí và tra cứu kho sách hơn {stats.books.toLocaleString()} đầu sách
-            </p>
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link to="/register" style={{ padding: '11px 28px', background: '#fff', color: 'var(--blue)', borderRadius: 'var(--radius-sm)', fontWeight: 700, fontSize: 14 }}>
-                Đăng ký miễn phí
-              </Link>
-              <Link to="/login" style={{ padding: '11px 28px', background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 'var(--radius-sm)', fontWeight: 600, fontSize: 14 }}>
-                Đăng nhập
-              </Link>
+          <div className="cta-section fade-in-up">
+            <div className="cta-bg-pattern" />
+            <div className="cta-content">
+              <div className="cta-icon-wrap">
+                <FiBookOpen size={32} />
+              </div>
+              <h3 className="cta-heading">Bắt đầu mượn sách ngay hôm nay</h3>
+              <p className="cta-text">
+                Đăng ký miễn phí và khám phá kho sách hơn {stats.books.toLocaleString()} đầu sách
+              </p>
+              <div className="cta-buttons">
+                <Link to="/register" className="cta-btn-primary">
+                  Đăng ký miễn phí
+                  <FiArrowRight size={16} />
+                </Link>
+                <Link to="/login" className="cta-btn-secondary">
+                  Đăng nhập
+                </Link>
+              </div>
             </div>
           </div>
         )}
       </div>
-
     </>
   );
 }
