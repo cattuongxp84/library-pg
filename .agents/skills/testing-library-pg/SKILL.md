@@ -30,15 +30,36 @@ PORT=3001 npm run client
 PORT=3002 npm run student-client
 ```
 
+### Production URLs
+- **Admin client**: https://library-pg-tawny.vercel.app/
+- **Student client**: https://library-pg-mlq6-ecru.vercel.app/
+- **Backend**: Render PostgreSQL (connected to both Vercel frontends)
+
 ### Demo Credentials
 - **Admin**: `admin@library.com` / `123456`
 - **Librarian**: `librarian@library.com` / `123456`
 - **Student**: `user@library.com` / `123456`
 
 ## Devin Secrets Needed
-No external secrets required — all services run locally with default PostgreSQL credentials.
+No external secrets required — all services run locally with default PostgreSQL credentials. Production Vercel sites use public demo credentials listed above.
 
 ## Testing Patterns
+
+### Production Vercel Testing
+When testing on production Vercel:
+1. Admin client requires login — navigate to the root URL first, login with admin credentials
+2. After login, navigate to admin routes (e.g., `/admin/books`)
+3. The student client homepage is public — no login required for stats verification
+4. Allow 5-10 seconds for API data to load from Render backend (can be slow on cold start)
+5. For AnimatedCounter testing, do a hard refresh (Ctrl+Shift+R) and wait for stats to update from 0 to real values
+
+### Admin Book Edit — Department Field Testing
+The department field in the book edit form had a type mismatch bug (integer vs string comparison). When testing:
+1. Open edit modal for any book → verify label says "Khoa viện" with NO asterisk `*`
+2. Dropdown should show "-- Không chọn --" as default or pre-populate with current department
+3. Select a department → save → verify success toast "Cập nhật sách thành công"
+4. Re-open same book → verify department persisted (not reverted)
+5. Clear department to "-- Không chọn --" → save → should succeed (field is optional)
 
 ### API Testing
 1. Get admin JWT token first:
@@ -86,19 +107,24 @@ The overdue scheduler runs on a daily cron (`0 0 * * *`). To test manually:
 
 ## Known Issues
 
-### AnimatedCounter Race Condition
-The homepage `AnimatedCounter` component might show 0 on first load. This is a race condition between `IntersectionObserver` firing and API data arriving. The `started.current` ref prevents re-animation when `target` changes from 0 to actual value. Manifests intermittently.
+### AnimatedCounter
+The homepage `AnimatedCounter` component shows 0 initially while API data loads, then animates to real values. This is expected behavior after the race condition fix. The fix resets `started.current = false` when `target` changes and skips animation when `target === 0`. If stats permanently show 0 after data loads, investigate the `useEffect` dependency on `target` in `student-client/src/pages/HomePage.js`.
 
 ### Admin-Client Runtime Error
 The admin-client (port 3001) may have a pre-existing `setLoading is not defined` error. This is not related to new feature PRs. Student-client (port 3002) is the primary testing target for student-facing features.
 
 ### Proxy Configuration
 - Student-client proxies `/api` to `http://localhost:5001` (configured in `package.json`)
-- On Vercel (static deployment), API calls fail silently since there's no backend — stats show 0, etc.
-- For production, set `REACT_APP_API_URL` environment variable to point to a deployed backend
+- On Vercel (static deployment), `REACT_APP_API_URL` environment variable must point to the deployed backend
+- If stats show 0 permanently on Vercel, check that `REACT_APP_API_URL` is set correctly in Vercel project settings
+
+### Render Backend Cold Starts
+The Render backend may take 30-60 seconds to wake up from sleep on free tier. If API calls fail or timeout on first load, wait and retry.
 
 ## Browser Testing Tips
 - Maximize browser window before recording: `wmctrl -r :ACTIVE: -b add,maximized_vert,maximized_horz`
-- Student-client features to test via browser: Fines page (/my-fines), Forgot/Reset Password, Homepage
-- Admin features may need API-level testing if admin-client has runtime errors
+- Student-client features to test via browser: Fines page (/my-fines), Forgot/Reset Password, Homepage stats
+- Admin features: Books management (/admin/books), Department CRUD (/admin/departments), Export Excel
 - The student-client login page has a "Quên mật khẩu?" link to `/forgot-password`
+- When testing edit forms, always verify both save-with-value and save-without-value for optional fields
+- After saving, re-open the form to verify data persistence (don't assume success toast = data saved correctly)
