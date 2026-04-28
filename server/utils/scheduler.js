@@ -28,7 +28,7 @@ const scheduleOverdueCheck = () => {
 
         const userOverdueBooks = overdueBorrows.filter(b => b.user_id === borrow.user.id);
         const bookList = userOverdueBooks.map(b => `- "${b.book?.title || 'N/A'}"`).join('\n');
-        const daysOverdue = Math.ceil((new Date() - new Date(borrow.due_date)) / (1000 * 60 * 60 * 24));
+        const daysOverdue = Math.max(...userOverdueBooks.map(b => Math.ceil((new Date() - new Date(b.due_date)) / (1000 * 60 * 60 * 24))));
 
         await Message.create({
           user_id: borrow.user.id,

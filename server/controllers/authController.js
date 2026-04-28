@@ -65,8 +65,7 @@ exports.forgotPassword = async (req, res) => {
 
     await user.update({ reset_token: resetToken, reset_token_expires: expires });
 
-    // Log token for admin to communicate to student (since email service may not be configured)
-    console.log(`[Auth] Password reset token for ${email}: ${resetToken} (expires: ${expires.toISOString()})`);
+    if (process.env.NODE_ENV === 'development') console.log(`[Auth] Password reset token for ${email}: ${resetToken} (expires: ${expires.toISOString()})`);
 
     res.json({
       success: true,
