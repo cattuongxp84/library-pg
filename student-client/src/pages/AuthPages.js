@@ -136,6 +136,9 @@ export function LoginPage() {
           Chưa có tài khoản?{' '}
           <Link to="/register" style={{ color: 'var(--blue)', fontWeight: 700 }}>Đăng ký ngay</Link>
         </p>
+        <p style={{ textAlign: 'center', marginTop: 6, fontSize: 14, color: 'var(--muted)' }}>
+          <Link to="/forgot-password" style={{ color: 'var(--blue)', fontWeight: 700 }}>Quên mật khẩu?</Link>
+        </p>
 
         <div style={{
           marginTop: 20,

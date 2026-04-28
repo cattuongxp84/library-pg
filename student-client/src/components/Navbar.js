@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { FiBookOpen, FiHome, FiBook, FiUser, FiLogOut, FiLogIn, FiMessageSquare, FiList, FiBookmark, FiMenu, FiX } from 'react-icons/fi';
+import { FiBookOpen, FiHome, FiBook, FiUser, FiLogOut, FiLogIn, FiMessageSquare, FiList, FiRefreshCw, FiBookmark, FiAlertCircle, FiMenu, FiX } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -17,12 +17,7 @@ export default function Navbar() {
     ...(user ? [
       { to: '/my-borrows', label: 'Sách đang mượn', icon: <FiList size={14} /> },
       { to: '/my-reservations', label: 'Đặt trước', icon: <FiBookmark size={14} /> },
-      { to: '/messages', label: 'Liên hệ', icon: <FiMessageSquare size={14} /> },
-    ] : []),
-  ];
-
-  return (
-    <>
+          { to: '/my-fines', label: 'Phí phạt', icon: <FiAlertCircle size={14} /> },
       <nav className="navbar">
         <Link to="/" className="navbar-brand">
           <FiBookOpen size={22} />

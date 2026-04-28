@@ -307,6 +307,89 @@ export function MyReservationsPage() {
   );
 }
 
+export function MyFinesPage() {
+  const [fines, setFines] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    api.get('/fines/my')
+      .then(r => setFines(r.data.data || []))
+      .catch(() => setFines([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const unpaid = fines.filter(f => !f.is_paid).reduce((sum, f) => sum + (f.amount || 0), 0);
+
+  return (
+    <>
+      <Navbar />
+      <div className="container section">
+        <PageHeader title="💰 Phí phạt của tôi" subtitle="Xem chi tiết phí phạt và trạng thái thanh toán" />
+
+        {loading ? (
+          <div style={{ padding: 60, textAlign: 'center' }}><div className="spinner" /></div>
+        ) : (
+          <>
+            {unpaid > 0 ? (
+              <div className="info-box danger" style={{ marginBottom: 16 }}>
+                <FiAlertCircle size={16} style={{ display: 'inline', marginRight: 8 }} />
+                Bạn đang nợ <strong>{unpaid.toLocaleString('vi-VN')}đ</strong> phí phạt. Vui lòng đến thư viện để thanh toán.
+              </div>
+            ) : (
+              <div className="info-box success" style={{ marginBottom: 16 }}>
+                <FiCheckCircle size={16} style={{ display: 'inline', marginRight: 8 }} />
+                Bạn không có phí phạt chưa thanh toán.
+              </div>
+            )}
+
+            {fines.length > 0 ? (
+              <div className="card">
+                <div className="table-wrapper">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Sách</th>
+                        <th>Ngày phạt</th>
+                        <th>Số ngày trễ</th>
+                        <th>Số tiền</th>
+                        <th>Trạng thái</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {fines.map(f => (
+                        <tr key={f.id}>
+                          <td style={{ fontWeight: 500 }}>{f.borrow?.book?.title || '—'}</td>
+                          <td style={{ fontSize: 13 }}>{f.created_at ? new Date(f.created_at).toLocaleDateString('vi-VN') : '—'}</td>
+                          <td style={{ fontSize: 13 }}>{f.overdue_days || 0} ngày</td>
+                          <td style={{ fontWeight: 700, color: f.is_paid ? 'var(--green)' : 'var(--red)' }}>
+                            {f.amount?.toLocaleString('vi-VN')}đ
+                          </td>
+                          <td>
+                            <span className={`badge ${f.is_paid ? 'badge-success' : 'badge-danger'}`}>
+                              {f.is_paid ? '✅ Đã trả' : '⚠️ Chưa trả'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="empty">
+                <div className="ico">🎉</div>
+                <h3>Chưa có phí phạt</h3>
+                <p>Bạn đang đi đúng hạn, tiếp tục giữ phong độ nhé!</p>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
 /* ─── MessagesPage ───────────────────────────────────────────────── */
 export function MessagesPage() {
   const [searchParams] = useSearchParams();
