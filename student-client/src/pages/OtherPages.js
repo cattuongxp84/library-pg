@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { FiRefreshCw, FiClock, FiBook, FiSend, FiHash, FiAlertCircle, FiCheckCircle, FiBookmark, FiUser, FiLock } from 'react-icons/fi';
+import { FiRefreshCw, FiClock, FiBook, FiSend, FiHash, FiAlertCircle, FiCheckCircle, FiBookmark, FiUser, FiLock, FiDollarSign } from 'react-icons/fi';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -607,7 +607,171 @@ export function ProfilePage() {
                 <h3>Không có phí phạt nào</h3>
               </div>
             )}
+            <div style={{ marginTop: 14, textAlign: 'center' }}>
+              <Link to="/my-fines" className="btn btn-secondary btn-sm">Xem chi tiết phí phạt →</Link>
+            </div>
           </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+/* ─── MyFinesPage ─────────────────────────────────────────────── */
+export function MyFinesPage() {
+  const [fines, setFines] = useState([]);
+  const [overdue, setOverdue] = useState({ borrows: [], totalFineOwed: 0, count: 0 });
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('');
+
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      api.get('/fines/my'),
+      api.get('/fines/my/overdue').catch(() => ({ data: { data: { borrows: [], totalFineOwed: 0, count: 0 } } })),
+    ]).then(([finesRes, overdueRes]) => {
+      setFines(finesRes.data.data || []);
+      setOverdue(overdueRes.data.data || { borrows: [], totalFineOwed: 0, count: 0 });
+    }).finally(() => setLoading(false));
+  }, []);
+
+  const filteredFines = filter === 'paid' ? fines.filter(f => f.is_paid)
+    : filter === 'unpaid' ? fines.filter(f => !f.is_paid)
+    : fines;
+
+  const totalUnpaid = fines.filter(f => !f.is_paid).reduce((s, f) => s + f.amount, 0);
+  const totalPaid = fines.filter(f => f.is_paid).reduce((s, f) => s + f.amount, 0);
+
+  return (
+    <>
+      <Navbar />
+      <div className="container section">
+        <PageHeader title="💰 Phí phạt của tôi" subtitle="Theo dõi các khoản phí phạt và tình trạng thanh toán" />
+
+        {loading ? (
+          <div style={{ padding: 60, textAlign: 'center' }}><div className="spinner" /></div>
+        ) : (
+          <>
+            {/* Summary cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 24 }}>
+              <div className="card card-body" style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 6 }}>Tổng phí phạt</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)' }}>
+                  {(totalUnpaid + totalPaid).toLocaleString('vi-VN')}đ
+                </div>
+              </div>
+              <div className="card card-body" style={{ textAlign: 'center', borderLeft: '3px solid var(--red)' }}>
+                <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 6 }}>Chưa thanh toán</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--red)' }}>
+                  {totalUnpaid.toLocaleString('vi-VN')}đ
+                </div>
+              </div>
+              <div className="card card-body" style={{ textAlign: 'center', borderLeft: '3px solid var(--green)' }}>
+                <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 6 }}>Đã thanh toán</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--green)' }}>
+                  {totalPaid.toLocaleString('vi-VN')}đ
+                </div>
+              </div>
+            </div>
+
+            {/* Overdue warning */}
+            {overdue.count > 0 && (
+              <div style={{
+                padding: '14px 18px', marginBottom: 20, borderRadius: 10,
+                background: '#fef2f2', border: '1px solid #fca5a5',
+                display: 'flex', alignItems: 'center', gap: 12,
+              }}>
+                <FiAlertCircle size={20} color="#dc2626" />
+                <div>
+                  <div style={{ fontWeight: 700, color: '#dc2626', fontSize: 14 }}>
+                    Bạn có {overdue.count} sách quá hạn!
+                  </div>
+                  <div style={{ fontSize: 13, color: '#991b1b', marginTop: 2 }}>
+                    Tiền phạt ước tính: {overdue.totalFineOwed.toLocaleString('vi-VN')}đ. Vui lòng trả sách sớm.
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Filter tabs */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 22, flexWrap: 'wrap' }}>
+              {[['', 'Tất cả'], ['unpaid', 'Chưa trả'], ['paid', 'Đã trả']].map(([v, l]) => (
+                <button key={v} className={`cat-pill ${filter === v ? 'active' : ''}`} style={{ fontSize: 13 }}
+                  onClick={() => setFilter(v)}>{l}</button>
+              ))}
+            </div>
+
+            {/* Fines list */}
+            {filteredFines.length > 0 ? (
+              <div className="card">
+                <div className="table-wrapper">
+                  <table>
+                    <thead>
+                      <tr>
+                        {['Sách', 'Lý do', 'Ngày phạt', 'Số ngày trễ', 'Tiền phạt', 'Trạng thái'].map(h => <th key={h}>{h}</th>)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredFines.map(f => {
+                        const reasonVi = { overdue: 'Quá hạn', damaged: 'Hỏng sách', lost: 'Mất sách', deposit: 'Thế chân' };
+                        return (
+                          <tr key={f.id}>
+                            <td>
+                              <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>{f.borrow?.book?.title || '—'}</div>
+                              <div style={{ fontSize: 12, color: 'var(--muted)' }}>{f.borrow?.book?.author || ''}</div>
+                            </td>
+                            <td><span className="badge badge-gray">{reasonVi[f.reason] || f.reason}</span></td>
+                            <td style={{ fontSize: 13 }}>{f.created_at ? new Date(f.created_at).toLocaleDateString('vi-VN') : '—'}</td>
+                            <td style={{ fontSize: 13 }}>{f.overdue_days > 0 ? `${f.overdue_days} ngày` : '—'}</td>
+                            <td style={{ fontWeight: 700, color: f.is_paid ? 'var(--green)' : 'var(--red)' }}>
+                              {f.amount.toLocaleString('vi-VN')}đ
+                            </td>
+                            <td>
+                              <span className={`badge ${f.is_paid ? 'badge-success' : 'badge-danger'}`}>
+                                {f.is_paid ? 'Đã trả' : 'Chưa trả'}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="empty">
+                <div className="ico">🎉</div>
+                <h3>Không có phí phạt nào</h3>
+                <p>Tuyệt vời! Bạn không có khoản phạt nào.</p>
+              </div>
+            )}
+
+            {/* Overdue books detail */}
+            {overdue.borrows.length > 0 && (
+              <div style={{ marginTop: 24 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 14 }}>📚 Sách đang quá hạn</h3>
+                <div className="card">
+                  <div className="table-wrapper">
+                    <table>
+                      <thead>
+                        <tr>{['Sách', 'Hạn trả', 'Quá hạn', 'Phạt ước tính'].map(h => <th key={h}>{h}</th>)}</tr>
+                      </thead>
+                      <tbody>
+                        {overdue.borrows.map((b, i) => (
+                          <tr key={i}>
+                            <td style={{ fontWeight: 600 }}>{b.bookTitle || '—'}</td>
+                            <td style={{ fontSize: 13 }}>{b.dueDate ? new Date(b.dueDate).toLocaleDateString('vi-VN') : '—'}</td>
+                            <td style={{ fontSize: 13, color: 'var(--red)', fontWeight: 600 }}>{b.daysOverdue} ngày</td>
+                            <td style={{ fontWeight: 700, color: 'var(--red)' }}>{(b.fineAmount || 0).toLocaleString('vi-VN')}đ</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </>

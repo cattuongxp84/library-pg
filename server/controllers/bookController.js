@@ -35,7 +35,7 @@ const buildAccessFilter = (req) => {
 // ─── GET /api/books ───────────────────────────────────────────────────────────
 exports.getBooks = async (req, res) => {
   try {
-    const { search, category, available, has_pdf, page = 1, limit = 12, sort = 'created_at', order = 'DESC' } = req.query;
+    const { search, category, department, available, has_pdf, page = 1, limit = 12, sort = 'created_at', order = 'DESC' } = req.query;
     const where = { is_active: true };
 
     if (search) {
@@ -45,7 +45,8 @@ exports.getBooks = async (req, res) => {
         { isbn:   { [Op.iLike]: `%${search}%` } },
       ];
     }
-    if (category)             where.category_id      = category;
+    if (category)              where.category_id      = category;
+    if (department)            where.department_id    = department;
     if (available === 'true')  where.available_copies = { [Op.gt]: 0 };
     if (available === 'false') where.available_copies = 0;
     if (has_pdf === 'true')    where.pdf_url = { [Op.ne]: null };

@@ -3,12 +3,14 @@ const { uploadPdf, uploadExcel } = require('../middleware/upload');
 
 // routes/auth.js
 const r1 = require('express').Router();
-const { register, login, getMe, changePassword } = require('../controllers/authController');
+const { register, login, getMe, changePassword, forgotPassword, resetPassword } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 r1.post('/register', register);
 r1.post('/login', login);
 r1.get('/me', protect, getMe);
 r1.put('/change-password', protect, changePassword);
+r1.post('/forgot-password', forgotPassword);
+r1.post('/reset-password', resetPassword);
 module.exports.authRouter = r1;
 
 // routes/messages.js
@@ -40,9 +42,10 @@ module.exports.booksRouter = r2;
 
 // routes/borrows.js
 const r3 = require('express').Router();
-const { borrowBook, returnBook, renewBorrow, getBorrows, getMyBorrows, generateBill } = require('../controllers/borrowController');
+const { borrowBook, returnBook, renewBorrow, getBorrows, getMyBorrows, generateBill, exportBorrowsExcel } = require('../controllers/borrowController');
 const { protect: p3, authorize: a3 } = require('../middleware/auth');
 r3.get('/', p3, a3('admin','librarian'), getBorrows);
+r3.get('/export', p3, a3('admin','librarian'), exportBorrowsExcel);
 r3.get('/my', p3, getMyBorrows);
 r3.post('/', p3, a3('admin','librarian'), borrowBook);
 r3.put('/:id/return', p3, a3('admin','librarian'), returnBook);

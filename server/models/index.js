@@ -18,6 +18,8 @@ const User = sequelize.define('User', {
   total_fines:  { type: DataTypes.INTEGER, defaultValue: 0 },
   unpaid_fines: { type: DataTypes.INTEGER, defaultValue: 0 },
   permissions:  { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
+  reset_token:  { type: DataTypes.STRING },
+  reset_token_expires: { type: DataTypes.DATE },
 }, { tableName: 'users' });
 
 User.beforeCreate(async (u) => { u.password = await bcrypt.hash(u.password, 10); });

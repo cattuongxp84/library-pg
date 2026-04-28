@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { User } = require('../models');
+const { Op } = require('sequelize');
 
 const signToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '7d' });
 
@@ -43,6 +45,68 @@ exports.changePassword = async (req, res) => {
     user.password = newPassword;
     await user.save();
     res.json({ success: true, message: 'Đổi mật khẩu thành công' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ success: false, message: 'Vui lòng nhập email' });
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.json({ success: true, message: 'Nếu email tồn tại, mã đặt lại mật khẩu đã được gửi.' });
+    }
+
+    const resetToken = crypto.randomBytes(3).toString('hex').toUpperCase();
+    const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    await user.update({ reset_token: resetToken, reset_token_expires: expires });
+
+    // Log token for admin to communicate to student (since email service may not be configured)
+    console.log(`[Auth] Password reset token for ${email}: ${resetToken} (expires: ${expires.toISOString()})`);
+
+    res.json({
+      success: true,
+      message: 'Mã đặt lại mật khẩu đã được tạo. Vui lòng liên hệ thư viện để nhận mã.',
+      // In development, return token directly for testing
+      ...(process.env.NODE_ENV === 'development' ? { resetToken } : {}),
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, token, newPassword } = req.body;
+    if (!email || !token || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Vui lòng điền đầy đủ thông tin' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'Mật khẩu mới tối thiểu 6 ký tự' });
+    }
+
+    const user = await User.findOne({
+      where: {
+        email,
+        reset_token: token.toUpperCase(),
+        reset_token_expires: { [Op.gt]: new Date() },
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Mã đặt lại không hợp lệ hoặc đã hết hạn' });
+    }
+
+    user.password = newPassword;
+    user.reset_token = null;
+    user.reset_token_expires = null;
+    await user.save();
+
+    res.json({ success: true, message: 'Đặt lại mật khẩu thành công. Vui lòng đăng nhập.' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

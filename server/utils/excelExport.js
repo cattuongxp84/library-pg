@@ -334,6 +334,64 @@ exports.exportUsers = async (users) => {
   return { filename, filepath };
 };
 
+// ─── Export Borrows ────────────────────────────────────────────────────────────
+exports.exportBorrows = async (borrows) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Lịch sử mượn trả');
+
+  worksheet.columns = [
+    { header: 'STT', key: 'stt', width: 8 },
+    { header: 'Mã SV', key: 'student_id', width: 15 },
+    { header: 'Tên Sinh Viên', key: 'student_name', width: 22 },
+    { header: 'Email', key: 'email', width: 25 },
+    { header: 'Tên Sách', key: 'book_title', width: 30 },
+    { header: 'Tác Giả', key: 'author', width: 20 },
+    { header: 'Mã ĐKCB', key: 'copy_code', width: 18 },
+    { header: 'Ngày Mượn', key: 'borrow_date', width: 14 },
+    { header: 'Hạn Trả', key: 'due_date', width: 14 },
+    { header: 'Ngày Trả', key: 'return_date', width: 14 },
+    { header: 'Trạng Thái', key: 'status', width: 14 },
+    { header: 'Loại Mượn', key: 'borrow_type', width: 12 },
+    { header: 'Số Lần Gia Hạn', key: 'renew_count', width: 14 },
+    { header: 'Ghi Chú', key: 'note', width: 25 },
+  ];
+
+  worksheet.getRow(1).style = headerStyle;
+  worksheet.getRow(1).height = 25;
+
+  const statusVi = { borrowed: 'Đang mượn', returned: 'Đã trả', overdue: 'Quá hạn', renewed: 'Đã gia hạn', lost: 'Mất sách' };
+  const typeVi = { home: 'Mượn về', onsite: 'Đọc tại chỗ' };
+
+  let stt = 1;
+  borrows.forEach(b => {
+    worksheet.addRow({
+      stt: stt++,
+      student_id: b.user?.student_id || '',
+      student_name: b.user?.name || '',
+      email: b.user?.email || '',
+      book_title: b.book?.title || '',
+      author: b.book?.author || '',
+      copy_code: b.copy?.copy_code || '',
+      borrow_date: b.borrow_date ? formatDate(b.borrow_date) : '',
+      due_date: b.due_date ? formatDate(b.due_date) : '',
+      return_date: b.return_date ? formatDate(b.return_date) : '',
+      status: statusVi[b.status] || b.status,
+      borrow_type: typeVi[b.borrow_type] || b.borrow_type || '',
+      renew_count: b.renew_count || 0,
+      note: b.note || '',
+    });
+  });
+
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber > 1) row.eachCell(cell => { cell.style = cellStyle; });
+  });
+
+  const filename = `borrows-${new Date().toISOString().split('T')[0]}.xlsx`;
+  const filepath = path.join(tmpDir, filename);
+  await workbook.xlsx.writeFile(filepath);
+  return { filename, filepath };
+};
+
 exports.parseBooksFile = async (filepath) => {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.readFile(filepath);
