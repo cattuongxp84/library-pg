@@ -200,6 +200,7 @@ exports.exportUsers = async (req, res) => {
   }
 };
 
+// ĐÃ FIX - Loại bỏ hoàn toàn merge conflict
 exports.importUsers = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'Vui lòng tải lên file Excel' });
@@ -208,28 +209,11 @@ exports.importUsers = async (req, res) => {
     const results = [];
 
     for (const row of rows) {
-<<<<<<< HEAD
-      if (!row.email) {
-        results.push({ status: 'skipped', reason: 'Missing email' });
-        continue;
-      }
-
-      // Resolve department_name -> department_id
-      let resolvedDeptId = row.department_id || null;
-      if (!resolvedDeptId && row.department_name) {
-        const dept = await Department.findOne({ where: { name: { [Op.iLike]: `%${row.department_name}%` } } });
-        if (dept) resolvedDeptId = dept.id;
-      }
-      row.department_id = resolvedDeptId;
-
-=======
->>>>>>> parent of 1bcd2b8 (s)
       let [user, created] = await User.findOrCreate({
         where: { email: row.email },
         defaults: {
           name: row.name || 'Unknown',
           email: row.email,
-<<<<<<< HEAD
           password: row.password || 'defaultPassword123',
           student_id: row.student_id || null,
           phone: row.phone || null,
@@ -238,20 +222,11 @@ exports.importUsers = async (req, res) => {
           is_active: row.is_active !== undefined ? row.is_active : true,
           date_of_birth: row.date_of_birth || null,
           department_id: row.department_id || null,
-=======
-          password: row.password,
-          student_id: row.student_id,
-          phone: row.phone,
-          address: row.address,
-          role: row.role,
-          is_active: row.is_active,
->>>>>>> parent of 1bcd2b8 (s)
         },
       });
 
       if (!created) {
         const updateData = {
-<<<<<<< HEAD
           name: row.name || user.name,
           student_id: row.student_id || user.student_id,
           phone: row.phone || user.phone,
@@ -260,14 +235,6 @@ exports.importUsers = async (req, res) => {
           is_active: row.is_active !== undefined ? row.is_active : user.is_active,
           date_of_birth: row.date_of_birth || user.date_of_birth,
           department_id: row.department_id || user.department_id,
-=======
-          name: row.name,
-          student_id: row.student_id,
-          phone: row.phone,
-          address: row.address,
-          role: row.role,
-          is_active: row.is_active,
->>>>>>> parent of 1bcd2b8 (s)
         };
         if (row.password) updateData.password = row.password;
         await user.update(updateData);
