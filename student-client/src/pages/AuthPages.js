@@ -441,11 +441,11 @@ export function ResetPasswordPage() {
               <input
                 className="form-control"
                 style={{ paddingLeft: 40, letterSpacing: 4, fontWeight: 700, fontSize: 16, textTransform: 'uppercase' }}
-                placeholder="ABC123"
+                placeholder="ABC123DEF456"
                 value={form.token}
                 onChange={e => setForm({ ...form, token: e.target.value })}
                 required
-                maxLength={6}
+                maxLength={12}
               />
             </div>
           </div>

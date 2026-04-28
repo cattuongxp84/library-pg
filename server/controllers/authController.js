@@ -60,7 +60,7 @@ exports.forgotPassword = async (req, res) => {
       return res.json({ success: true, message: 'Nếu email tồn tại, mã đặt lại mật khẩu đã được gửi.' });
     }
 
-    const resetToken = crypto.randomBytes(3).toString('hex').toUpperCase();
+    const resetToken = crypto.randomBytes(6).toString('hex').toUpperCase();
     const expires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
     await user.update({ reset_token: resetToken, reset_token_expires: expires });
@@ -70,7 +70,7 @@ exports.forgotPassword = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Mã đặt lại mật khẩu đã được tạo. Vui lòng liên hệ thư viện để nhận mã.',
+      message: 'Nếu email tồn tại, mã đặt lại mật khẩu đã được gửi.',
       // In development, return token directly for testing
       ...(process.env.NODE_ENV === 'development' ? { resetToken } : {}),
     });
