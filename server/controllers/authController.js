@@ -34,6 +34,27 @@ exports.login = async (req, res) => {
 
 exports.getMe = (req, res) => res.json({ success: true, user: req.user });
 
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    if (!email || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Email và mật khẩu mới là bắt buộc' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ success: false, message: 'Mật khẩu mới phải có ít nhất 6 ký tự' });
+    }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) return res.status(404).json({ success: false, message: 'Không tìm thấy email' });
+
+    user.password = newPassword;
+    await user.save();
+    res.json({ success: true, message: 'Mật khẩu mới đã được cập nhật. Vui lòng đăng nhập lại.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 exports.changePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;

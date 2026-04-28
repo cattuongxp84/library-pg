@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
 const { sequelize } = require('../config/db');
 const { Borrow, Book, User, Fine, BookCopy } = require('../models');
+const { exportBorrowHistory } = require('../utils/excelExport');
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
@@ -226,6 +227,28 @@ exports.getMyBorrows = async (req, res) => {
       order: [['created_at', 'DESC']],
     });
     res.json({ success: true, data: borrows });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.exportBorrowHistory = async (req, res) => {
+  try {
+    const borrows = await Borrow.findAll({
+      include: [
+        { model: User, as: 'user', attributes: ['id','name','email','student_id'] },
+        { model: Book, as: 'book', attributes: ['id','title','author'] },
+        { model: BookCopy, as: 'copy', attributes: ['id','copy_code'] },
+        { model: User, as: 'processor', attributes: ['id','name'] },
+      ],
+      order: [['created_at', 'DESC']],
+    });
+
+    const { filename, filepath } = await exportBorrowHistory(borrows);
+    res.download(filepath, filename, err => {
+      if (err) return res.status(500).json({ success: false, message: err.message });
+      try { fs.unlinkSync(filepath); } catch (e) { console.warn('Không xóa được file tạm:', e.message); }
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

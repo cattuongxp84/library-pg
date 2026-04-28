@@ -334,6 +334,64 @@ exports.exportUsers = async (users) => {
   return { filename, filepath };
 };
 
+exports.exportBorrowHistory = async (borrows) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Borrow History');
+
+  worksheet.columns = [
+    { header: 'ID', key: 'id', width: 10 },
+    { header: 'Tên sinh viên', key: 'student_name', width: 28 },
+    { header: 'Mã SV', key: 'student_id', width: 16 },
+    { header: 'Email', key: 'email', width: 28 },
+    { header: 'Tên sách', key: 'book_title', width: 30 },
+    { header: 'Tác giả', key: 'author', width: 22 },
+    { header: 'Mã ĐKCB', key: 'copy_code', width: 18 },
+    { header: 'Ngày mượn', key: 'borrow_date', width: 14 },
+    { header: 'Hạn trả', key: 'due_date', width: 14 },
+    { header: 'Ngày trả', key: 'return_date', width: 14 },
+    { header: 'Trạng thái', key: 'status', width: 14 },
+    { header: 'Tiền phạt', key: 'fine_amount', width: 14 },
+    { header: 'Đã thanh toán', key: 'fine_paid', width: 14 },
+    { header: 'Xử lý bởi', key: 'processed_by', width: 20 },
+    { header: 'Ghi chú', key: 'note', width: 30 },
+  ];
+
+  worksheet.getRow(1).style = headerStyle;
+  worksheet.getRow(1).height = 25;
+
+  borrows.forEach(borrow => {
+    const fine = borrow.Fine || borrow.fine || null;
+    worksheet.addRow({
+      id: borrow.id,
+      student_name: borrow.user?.name || '',
+      student_id: borrow.user?.student_id || '',
+      email: borrow.user?.email || '',
+      book_title: borrow.book?.title || '',
+      author: borrow.book?.author || '',
+      copy_code: borrow.copy?.copy_code || '',
+      borrow_date: formatDate(borrow.borrow_date),
+      due_date: formatDate(borrow.due_date),
+      return_date: formatDate(borrow.return_date),
+      status: borrow.status,
+      fine_amount: fine?.amount || 0,
+      fine_paid: fine?.is_paid ? 'YES' : 'NO',
+      processed_by: borrow.processor?.name || '',
+      note: borrow.note || '',
+    });
+  });
+
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber > 1) {
+      row.eachCell(cell => { cell.style = cellStyle; });
+    }
+  });
+
+  const filename = `borrow-history-${new Date().toISOString().split('T')[0]}.xlsx`;
+  const filepath = path.join(tmpDir, filename);
+  await workbook.xlsx.writeFile(filepath);
+  return { filename, filepath };
+};
+
 exports.parseBooksFile = async (filepath) => {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.readFile(filepath);

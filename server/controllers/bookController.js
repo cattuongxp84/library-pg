@@ -46,6 +46,7 @@ exports.getBooks = async (req, res) => {
       ];
     }
     if (category)             where.category_id      = category;
+    if (req.query.department) where.department_id    = req.query.department;
     if (available === 'true')  where.available_copies = { [Op.gt]: 0 };
     if (available === 'false') where.available_copies = 0;
     if (has_pdf === 'true')    where.pdf_url = { [Op.ne]: null };
