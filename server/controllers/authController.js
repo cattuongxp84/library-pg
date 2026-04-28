@@ -55,7 +55,7 @@ exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ success: false, message: 'Vui lòng nhập email' });
 
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ where: { email, is_active: true } });
     if (!user) {
       return res.json({ success: true, message: 'Nếu email tồn tại, mã đặt lại mật khẩu đã được gửi.' });
     }
@@ -93,6 +93,7 @@ exports.resetPassword = async (req, res) => {
         email,
         reset_token: token.toUpperCase(),
         reset_token_expires: { [Op.gt]: new Date() },
+        is_active: true,
       },
     });
 
