@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.manifest
+*.spec.bak
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Database files
+*.db
+instance/
+
+# Session files
+session_*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts (keep .spec files)
+*.exe

@@ -1,0 +1,23 @@
+<!-- Import Users -->
+<div id="import-users" class="tab-content">
+    <h2 class="section-title">
+        <i class="fas fa-file-import"></i> Import Users từ Excel
+    </h2>
+    <div class="form-container">
+        <a href="/admin/export_users_template" class="btn btn-primary" style="margin-bottom: 18px;">
+            <i class="fas fa-download"></i> Tải file mẫu Excel
+        </a>
+        <a href="/admin/export_users_excel" class="btn btn-success" style="margin-bottom: 18px; margin-left: 8px;">
+            <i class="fas fa-file-excel"></i> Xuất danh sách sinh viên
+        </a>
+        <form action="{{ url_for('import_users') }}" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="fileInput"><i class="fas fa-file-excel"></i> Chọn file Excel</label>
+                <input type="file" name="file" id="fileInput" accept=".xlsx,.xls" required>
+            </div>
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-upload"></i> Import Users
+            </button>
+        </form>
+    </div>
+</div>
