@@ -1,0 +1,86 @@
+<div id="shadow-defender-management" class="tab-content">
+    <div class="section-title">
+        <i class="fas fa-shield-alt"></i> Quản lý Shadow Defender
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Tên máy</th>
+                    <th>IP</th>
+                    <th>Trạng thái SD</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for computer in computers %}
+                <tr>
+                    <td>{{ computer.name }}</td>
+                    <td>{{ computer.ip_address }}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="getSDStatus({{ computer.id }})">
+                            <i class="fas fa-search"></i> Kiểm tra
+                        </button>
+                        <span id="sd-status-{{ computer.id }}"></span>
+                    </td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="sdDisable({{ computer.id }})">
+                            <i class="fas fa-unlock"></i> Mở băng
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="sdEnable({{ computer.id }})">
+                            <i class="fas fa-lock"></i> Đóng băng
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="sdCommit({{ computer.id }})">
+                            <i class="fas fa-save"></i> Commit
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function getSDStatus(id) {
+    fetch(`/api/remote/shadow_defender/status/${id}`)
+        .then(res => res.json())
+        .then(data => {
+            let status = data.status ? data.status.mode : "Không xác định";
+            document.getElementById(`sd-status-${id}`).innerText = status;
+            if (data.status && data.status.output) {
+                document.getElementById(`sd-status-${id}`).title = data.status.output;
+            }
+        });
+}
+
+function sdDisable(id) {
+    fetch(`/api/remote/shadow_defender/disable/${id}`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({}) // Không cần truyền password
+    })
+    .then(res => res.json())
+    .then(data => alert(data.message || JSON.stringify(data)));
+}
+
+function sdEnable(id) {
+    fetch(`/api/remote/shadow_defender/enable/${id}`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({}) // Không cần truyền password
+    })
+    .then(res => res.json())
+    .then(data => alert(data.message || JSON.stringify(data)));
+}
+
+function sdCommit(id) {
+    fetch(`/api/remote/shadow_defender/commit/${id}`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({}) // Không cần truyền password
+    })
+    .then(res => res.json())
+    .then(data => alert(data.message || JSON.stringify(data)));
+}
+</script>
