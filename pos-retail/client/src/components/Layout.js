@@ -6,11 +6,11 @@ import { FiHome, FiShoppingCart, FiPackage, FiFileText, FiUsers, FiTruck, FiData
 const navItems = [
   { path: '/', icon: FiHome, label: 'Tổng quan' },
   { path: '/pos', icon: FiShoppingCart, label: 'Bán hàng (POS)' },
-  { path: '/products', icon: FiPackage, label: 'Sản phẩm' },
+  { path: '/products', icon: FiPackage, label: 'Menu' },
   { path: '/orders', icon: FiFileText, label: 'Đơn hàng' },
   { path: '/customers', icon: FiUsers, label: 'Khách hàng' },
   { path: '/suppliers', icon: FiTruck, label: 'Nhà cung cấp' },
-  { path: '/inventory', icon: FiDatabase, label: 'Kho hàng' },
+  { path: '/inventory', icon: FiDatabase, label: 'Kho / Nguyên liệu' },
   { path: '/debts', icon: FiDollarSign, label: 'Công nợ' },
   { path: '/reports', icon: FiBarChart2, label: 'Báo cáo' },
 ];
@@ -28,8 +28,8 @@ const Layout = () => {
     <div className="app-layout">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h2>POS Retail</h2>
-          <p>Quản lý bán hàng</p>
+          <h2>Cafe POS</h2>
+          <p>Quản lý quán cafe</p>
         </div>
         <nav className="sidebar-nav">
           {navItems.map(({ path, icon: Icon, label }) => (

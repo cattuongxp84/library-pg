@@ -59,7 +59,7 @@ const ProductsPage = () => {
   return (
     <>
       <div className="header">
-        <h1>Sản phẩm</h1>
+        <h1>Menu</h1>
         <button className="btn btn-primary" onClick={() => { setEditProduct(null); setForm({ name: '', sku: '', barcode: '', category_id: '', cost_price: '', sell_price: '', stock_quantity: '', min_stock: '5', unit: 'cái', description: '' }); setShowModal(true); }}>
           <FiPlus /> Thêm sản phẩm
         </button>

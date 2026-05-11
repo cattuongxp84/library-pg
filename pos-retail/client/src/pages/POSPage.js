@@ -140,7 +140,7 @@ const POSPage = () => {
   return (
     <>
       <div className="header">
-        <h1>Bán hàng (POS)</h1>
+        <h1>Order (POS)</h1>
       </div>
       <div className="page-content">
         <div className="pos-layout">
@@ -149,7 +149,7 @@ const POSPage = () => {
               <input
                 ref={searchRef}
                 type="text"
-                placeholder="Tìm sản phẩm theo tên, mã, barcode..."
+                placeholder="Tìm món theo tên, mã..."
                 value={search}
                 onChange={handleSearch}
                 autoFocus

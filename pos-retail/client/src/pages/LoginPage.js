@@ -28,8 +28,8 @@ const LoginPage = () => {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)' }}>
       <div style={{ background: 'white', borderRadius: 16, padding: 40, width: '100%', maxWidth: 400, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: '#1e293b' }}>POS Retail</h1>
-          <p style={{ color: '#64748b', marginTop: 8 }}>Phần mềm quản lý bán hàng</p>
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: '#1e293b' }}>☕ Cafe POS</h1>
+          <p style={{ color: '#64748b', marginTop: 8 }}>Phần mềm quản lý quán cafe</p>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -39,7 +39,7 @@ const LoginPage = () => {
               className="form-control"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@pos.com"
+              placeholder="admin@cafe.com"
               required
             />
           </div>
@@ -64,7 +64,7 @@ const LoginPage = () => {
           </button>
         </form>
         <div style={{ marginTop: 20, padding: 12, background: '#f1f5f9', borderRadius: 8, fontSize: 12, color: '#64748b' }}>
-          <strong>Demo:</strong> admin@pos.com / 123456
+          <strong>Demo:</strong> admin@cafe.com / 123456
         </div>
       </div>
     </div>

@@ -54,7 +54,7 @@ const DashboardPage = () => {
               <div style={{ width: 40, height: 40, borderRadius: 10, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <FiPackage style={{ color: '#d97706' }} />
               </div>
-              <span className="stat-label">Sản phẩm sắp hết</span>
+              <span className="stat-label">Nguyên liệu sắp hết</span>
             </div>
             <div className="stat-value text-warning">{dashboard?.inventory?.lowStockProducts || 0}</div>
           </div>
@@ -80,12 +80,12 @@ const DashboardPage = () => {
             </p>
           </div>
           <div className="card">
-            <h3 style={{ marginBottom: 16, fontSize: 16 }}>Kho hàng</h3>
+            <h3 style={{ marginBottom: 16, fontSize: 16 }}>Menu</h3>
             <div className="stat-value text-primary" style={{ fontSize: 28 }}>
               {dashboard?.inventory?.totalProducts || 0}
             </div>
             <p style={{ color: '#64748b', fontSize: 13, marginTop: 8 }}>
-              sản phẩm đang kinh doanh
+              món trong menu
             </p>
           </div>
         </div>

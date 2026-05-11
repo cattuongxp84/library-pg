@@ -82,7 +82,7 @@ const InventoryPage = () => {
   return (
     <>
       <div className="header">
-        <h1>Kho hàng</h1>
+        <h1>Kho / Nguyên liệu</h1>
         <button className="btn btn-primary" onClick={() => setShowModal(true)}><FiPlus /> Nhập kho</button>
       </div>
       <div className="page-content">

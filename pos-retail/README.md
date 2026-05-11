@@ -1,8 +1,8 @@
-# 🏪 POS Retail - Phần mềm quản lý bán hàng offline
+# ☕ Cafe POS - Phần mềm quản lý quán cafe
 
 **Stack:** Node.js + Express + Sequelize + PostgreSQL + React
 
-Phần mềm quản lý bán hàng offline dành cho cửa hàng bán lẻ. Dữ liệu lưu trực tiếp trên PostgreSQL, có thể lưu lên đám mây. Offline hoặc online đều vẫn bán hàng, in hóa đơn, quản lý kho và công nợ.
+Phần mềm quản lý quán cafe offline/online. Dữ liệu lưu trực tiếp trên PostgreSQL, có thể lưu lên đám mây. Offline hoặc online đều vẫn bán hàng, in hóa đơn, quản lý kho nguyên liệu và công nợ.
 
 ---
 
@@ -10,10 +10,10 @@ Phần mềm quản lý bán hàng offline dành cho cửa hàng bán lẻ. Dữ
 
 | Tính năng | Mô tả |
 |-----------|--------|
-| **Bán hàng (POS)** | Giao diện bán hàng nhanh, tìm sản phẩm, quét barcode, tính tiền tự động |
-| **Quản lý sản phẩm** | CRUD sản phẩm, danh mục, SKU, barcode, giá vốn/giá bán |
-| **Quản lý kho** | Nhập kho, kiểm kê tồn, cảnh báo sắp hết hàng |
-| **Quản lý khách hàng** | Danh sách KH, lịch sử mua hàng, công nợ |
+| **Bán hàng (POS)** | Giao diện order nhanh, tìm món, tính tiền tự động |
+| **Quản lý Menu** | CRUD sản phẩm (cà phê, trà sữa, sinh tố, bánh, topping) |
+| **Quản lý kho** | Nhập kho nguyên liệu, kiểm kê tồn, cảnh báo sắp hết |
+| **Quản lý khách hàng** | Danh sách KH thân thiết, lịch sử mua, công nợ |
 | **Quản lý nhà cung cấp** | Danh sách NCC, phiếu nhập, công nợ |
 | **Công nợ** | Theo dõi nợ KH/NCC, thanh toán nợ, lịch sử giao dịch |
 | **In hóa đơn** | In hóa đơn PDF (hỗ trợ máy in bill) |
@@ -52,7 +52,7 @@ npm run install:all
 ```bash
 cd server
 cp .env.example .env
-# Chỉnh sửa .env theo môi trường của bạn
+# Chỉnh sửa .env theo môi trường của bạn (DB_PASSWORD, STORE_NAME...)
 ```
 
 ### 4. Seed dữ liệu demo
@@ -76,8 +76,20 @@ npm run dev
 
 | Vai trò | Email | Mật khẩu |
 |---------|-------|-----------|
-| Admin | admin@pos.com | 123456 |
-| Nhân viên | staff@pos.com | 123456 |
+| Admin | admin@cafe.com | 123456 |
+| Thu ngân | staff@cafe.com | 123456 |
+
+---
+
+## 📋 Menu demo (seed data)
+
+| Danh mục | Sản phẩm |
+|----------|----------|
+| Cà phê | Cà phê đen đá, Cà phê sữa đá, Bạc xỉu, Cappuccino, Latte |
+| Trà sữa | Trà sữa trân châu, Trà sữa matcha, Trà đào cam sả |
+| Nước ép & Sinh tố | Sinh tố bơ, Nước ép cam, Sinh tố dâu |
+| Bánh ngọt | Bánh croissant, Bánh tiramisu, Cookie socola |
+| Topping | Trân châu đen, Thạch dừa, Extra shot espresso |
 
 ---
 
@@ -154,7 +166,7 @@ DB_PASSWORD=your-password
 | Method | Endpoint | Mô tả |
 |--------|----------|--------|
 | POST | /api/auth/login | Đăng nhập |
-| GET | /api/products | Danh sách sản phẩm |
+| GET | /api/products | Danh sách menu |
 | POST | /api/orders | Tạo đơn hàng (POS) |
 | GET | /api/orders | Danh sách đơn hàng |
 | GET | /api/invoices/:id/pdf | In hóa đơn PDF |
